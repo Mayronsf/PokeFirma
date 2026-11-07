@@ -131,11 +131,14 @@ export function Header() {
   useEffect(() => {
     if (!open) return;
     const antes = document.body.style.overflow;
+    const antesHtml = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
     const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
     window.addEventListener('keydown', esc);
     return () => {
       document.body.style.overflow = antes;
+      document.documentElement.style.overflow = antesHtml;
       window.removeEventListener('keydown', esc);
     };
   }, [open]);

@@ -1349,3 +1349,55 @@ span.hero-skin {
     right: 26px;
   }
 }
+
+/* celular: os 5 lendários cabem na tela (antes o 1º e o 5º eram escondidos) */
+@media (max-width: 640px) {
+  .legend-fan li:nth-child(1),
+  .legend-fan li:nth-child(5) {
+    display: list-item;
+  }
+  .legend-fan {
+    width: 100%;
+    bottom: -24px;
+  }
+  .legend-fan li {
+    margin-inline: clamp(-16px, -3.4vw, -10px);
+    transform: translateY(calc(abs(var(--i)) * 18px)) rotate(calc(var(--i) * 7deg));
+  }
+  .legend-fan li:hover,
+  .legend-fan li.armed {
+    transform: translateY(calc(abs(var(--i)) * 18px)) rotate(0deg);
+  }
+  .legend-card {
+    width: clamp(78px, 24.5vw, 128px);
+    padding: 6px 6px 10px;
+    border-radius: 12px;
+  }
+  .legend-top {
+    justify-content: center;
+    font-size: 0.56rem;
+  }
+  .legend-num {
+    display: none;
+  }
+  .legend-name {
+    font-size: clamp(0.82rem, 3.6vw, 1.2rem);
+  }
+  .legend-tap-hint {
+    font-size: 0.56rem !important;
+    line-height: 1.2;
+  }
+}
+@media (max-width: 640px) and (hover: none) {
+  .legend-fan li:hover:not(.armed) {
+    transform: translateY(calc(abs(var(--i)) * 18px)) rotate(calc(var(--i) * 7deg));
+  }
+}
+@media (max-width: 640px) {
+  .legend-band {
+    height: clamp(330px, 92vw, 380px);
+  }
+  .legend-fan {
+    bottom: 34px;
+  }
+}

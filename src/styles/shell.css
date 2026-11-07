@@ -638,3 +638,46 @@
     align-items: flex-start;
   }
 }
+
+/* menu do celular: só o ☰ do topo, em todas as páginas; o menu rola por dentro */
+.burger {
+  display: none;
+}
+@media (max-width: 900px) {
+  .site-header .burger {
+    display: inline-flex;
+  }
+}
+.bottom-bar {
+  display: none !important;
+}
+.mobile-sheet {
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  grid-template-rows: auto auto auto;
+  align-content: start;
+  gap: 8px;
+}
+.mobile-sheet-top {
+  position: sticky;
+  top: -14px;
+  z-index: 1;
+  margin: -14px calc(var(--gutter) * -1) 0;
+  padding: 14px var(--gutter) 10px;
+  background: var(--char-950);
+}
+.mobile-sheet ul {
+  margin-top: 12px;
+}
+.mobile-sheet-foot {
+  padding-top: 18px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+@media (max-height: 700px) {
+  .mobile-sheet nav a {
+    font-size: 2.1rem;
+    padding: 8px 0;
+  }
+}

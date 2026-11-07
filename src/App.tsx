@@ -2,7 +2,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Route, Routes, useLocation, useNavigationType, type Location } from 'react-router-dom';
 import { X } from 'lucide-react';
-import { BottomBar, Footer, Header } from './components/Shell';
+import { Footer, Header } from './components/Shell';
 import { NickOnboarding } from './components/NickOnboarding';
 import { ErrorBoundary, lazyPage, limparMarcasDeRecarga } from './components/ErrorBoundary';
 import { useStore } from './lib/store';
@@ -27,7 +27,6 @@ const NotFound = lazyPage(() => import('./pages/NotFound'));
 const Admin = lazyPage(() => import('./pages/Admin'));
 const Jogadores = lazyPage(() => import('./pages/Jogadores'));
 
-const CONSULT = ['/pokedex', '/times', '/time/', '/perfil', '/jogador', '/admin'];
 
 const TITLES: [RegExp, string][] = [
   [/^\/lore/, 'Lore'],
@@ -125,7 +124,6 @@ export default function App() {
     const t = setTimeout(limparMarcasDeRecarga, 10000);
     return () => clearTimeout(t);
   }, [loc.pathname]);
-  const consult = CONSULT.some((p) => loc.pathname.startsWith(p));
   useEffect(() => {
     if (!loc.hash && navType !== 'POP') window.scrollTo(0, 0);
     const t = TITLES.find(([re]) => re.test(loc.pathname))?.[1];
@@ -139,7 +137,7 @@ export default function App() {
   }, [loc.hash, loc.pathname]);
 
   return (
-    <div className={consult ? 'has-bottom-bar' : undefined}>
+    <div>
       <a href="#conteudo" className="skip">
         Pular para o conteúdo
       </a>
@@ -173,7 +171,6 @@ export default function App() {
       </Suspense>
       </ErrorBoundary>
       <Footer />
-      {consult && <BottomBar />}
       <NickOnboarding />
       <ErrorToast />
     </div>
