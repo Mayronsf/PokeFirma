@@ -1,0 +1,1 @@
+Coloque aqui os arquivos .png das skins dos membros (64x64 ou 64x32) e aponte em src/config.ts > membros, ex.: { nick: 'Fulano', skin: '/assets/skins/fulano.png' }.

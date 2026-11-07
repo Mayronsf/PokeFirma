@@ -1,0 +1,1 @@
+﻿Coloque aqui os prints do mundo (ex.: hero.jpg, ranking.jpg) e aponte em src/config.ts > imagens.

@@ -1,0 +1,52 @@
+rules_version = '2';
+
+// Firma League — regras do Cloud Firestore
+// - users/{uid}: perfil privado. Só o dono lê e escreve.
+// - users/{uid}/teams/{teamId}: times. O dono lê e escreve; times com publico == true podem ser lidos por todos.
+// - publicProfiles/{nickLower}: vitrine pública do perfil (/jogador/{nick}). Todos leem; só o dono escreve.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+
+    match /users/{uid} {
+      allow read, write: if isOwner(uid);
+
+      match /teams/{teamId} {
+        allow read: if isOwner(uid) || resource.data.publico == true;
+        allow create, update: if isOwner(uid)
+          && request.resource.data.pokemon is list
+          && request.resource.data.pokemon.size() <= 6
+          && request.resource.data.publico is bool;
+        allow delete: if isOwner(uid);
+      }
+    }
+
+    // Consulta "Times da comunidade" (collectionGroup) — só times públicos.
+    match /{path=**}/teams/{teamId} {
+      allow read: if resource.data.publico == true;
+    }
+
+    // Admins: documento admins/{uid} criado à mão no console. Cada um só lê o próprio.
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    match /admins/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+
+    // Dados da Liga (ranking e torneios): todos leem, só admins escrevem (painel /admin).
+    match /liga/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /publicProfiles/{nick} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+  }
+}

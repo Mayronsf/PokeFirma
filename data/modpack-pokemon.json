@@ -1,0 +1,26 @@
+{
+  "_comoEditar": "Dados da Firma League que a PokéAPI não tem. A chave é o número da Pokédex Nacional. 'disponivel' alimenta o filtro 'Disponível no modpack'. Campos vazios ('') aparecem como [A DEFINIR]. 'capitulo' = 1 Kanto, 2 Johto, 3 Hoenn, 4 Sinnoh.",
+  "pokemon": {
+    "145": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Lendário", "estrutura": "Power Plant (Usina de Zapdos)", "capitulo": 1, "observacoes": "Na lore, a Equipe Rocket usou a energia da Usina para criar Mewtwo." },
+    "150": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Lendário", "estrutura": "Redutos da Equipe Rocket", "capitulo": 1, "observacoes": "Giovanni o usa no clímax de Kanto (Nv. 80). Mega Mewtwo X/Y só na Copa Ubers." },
+    "151": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Mítico", "estrutura": "Overgrown Temple (Templo de Mew)", "capitulo": 1, "observacoes": "O DNA ancestral roubado pela Rocket veio deste templo." },
+    "243": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Lendário", "estrutura": "Burned Tower", "capitulo": 2, "observacoes": "Se espalha pelo mapa depois do sinal da Radio Tower." },
+    "244": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Lendário", "estrutura": "Burned Tower", "capitulo": 2, "observacoes": "" },
+    "245": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Lendário", "estrutura": "Burned Tower", "capitulo": 2, "observacoes": "" },
+    "249": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Lendário", "estrutura": "Whirl Islands", "capitulo": 2, "observacoes": "" },
+    "250": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Lendário", "estrutura": "Bell Tower", "capitulo": 2, "observacoes": "" },
+    "251": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Mítico", "estrutura": "Santuário da Ilex Forest", "capitulo": 2, "observacoes": "" },
+    "382": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Lendário", "estrutura": "Kyogre Dome", "capitulo": 3, "observacoes": "Primal Kyogre só na Copa Ubers." },
+    "383": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Lendário", "estrutura": "Groudon Volcano", "capitulo": 3, "observacoes": "Primal Groudon só na Copa Ubers." },
+    "384": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Lendário", "estrutura": "Sky Pillar", "capitulo": 3, "observacoes": "Mega Rayquaza só na Copa Ubers." },
+    "483": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Lendário", "estrutura": "Spear Pillar / Temple of Sinnoh", "capitulo": 4, "observacoes": "" },
+    "484": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Lendário", "estrutura": "Spear Pillar / Temple of Sinnoh", "capitulo": 4, "observacoes": "" },
+    "487": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Lendário", "estrutura": "Spear Pillar · Mundo Distorcido", "capitulo": 4, "observacoes": "" },
+    "493": { "disponivel": true, "bioma": "", "horario": "", "raridade": "Mítico", "estrutura": "Hall of Origin", "capitulo": 4, "observacoes": "" },
+    "1": { "disponivel": true, "bioma": "", "horario": "", "raridade": "", "estrutura": "", "capitulo": 1, "observacoes": "" },
+    "4": { "disponivel": true, "bioma": "", "horario": "", "raridade": "", "estrutura": "", "capitulo": 1, "observacoes": "" },
+    "7": { "disponivel": true, "bioma": "", "horario": "", "raridade": "", "estrutura": "", "capitulo": 1, "observacoes": "" },
+    "25": { "disponivel": true, "bioma": "", "horario": "", "raridade": "", "estrutura": "", "capitulo": 1, "observacoes": "" },
+    "376": { "disponivel": true, "bioma": "", "horario": "", "raridade": "", "estrutura": "", "capitulo": 3, "observacoes": "Steven Stone luta com Mega Metagross no clímax de Hoenn." }
+  }
+}

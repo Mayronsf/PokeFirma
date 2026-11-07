@@ -1,0 +1,48 @@
+{
+  "_comoEditar": "Ponto de partida da Liga. Depois do primeiro 'Salvar' no painel /admin, o site passa a usar os dados da nuvem (Firestore liga/dados) e este arquivo deixa de ser lido. Status do torneio: 'em-breve' | 'em-andamento' | 'encerrado'. Datas em aaaa-mm-dd.",
+  "exemplo": false,
+  "atualizadoEm": "2026-11-07",
+  "jogadores": [],
+  "torneios": [
+    {
+      "id": "copa-kanto",
+      "nome": "Copa Kanto",
+      "capitulo": 1,
+      "formato": "6v6 Singles · 1 Mega e/ou 1 Terastal por partida",
+      "status": "em-breve",
+      "data": null,
+      "campeao": null,
+      "chave": []
+    },
+    {
+      "id": "copa-johto",
+      "nome": "Copa Johto",
+      "capitulo": 2,
+      "formato": "6v6 Singles + Defesa dos Ginásios dos Amigos",
+      "status": "em-breve",
+      "data": null,
+      "campeao": null,
+      "chave": []
+    },
+    {
+      "id": "copa-hoenn",
+      "nome": "Copa Hoenn",
+      "capitulo": 3,
+      "formato": "6v6 Singles ou 4v4 Doubles VGC",
+      "status": "em-breve",
+      "data": null,
+      "campeao": null,
+      "chave": []
+    },
+    {
+      "id": "grande-final",
+      "nome": "Grande Final — Liga Mundial & Copa Ubers",
+      "capitulo": 4,
+      "formato": "Vale-Tudo Nv. 100 · Lendários liberados na chave especial",
+      "status": "em-breve",
+      "data": null,
+      "campeao": null,
+      "chave": []
+    }
+  ]
+}

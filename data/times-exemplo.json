@@ -1,0 +1,53 @@
+{
+  "_comoEditar": "Times de exemplo (modelos) exibidos em Times da comunidade enquanto não houver times públicos na nuvem. Não são de jogadores reais. Texto no formato do Pokémon Showdown.",
+  "times": [
+    {
+      "id": "exemplo-usina",
+      "nome": "Usina de Celadon",
+      "autor": "Exemplo da Firma",
+      "skin": "MHF_Steve",
+      "formato": "singles",
+      "dex": [
+        94,
+        130,
+        65,
+        112,
+        3,
+        59
+      ],
+      "showdown": "Gengar @ Life Orb\nAbility: Cursed Body\nLevel: 50\nTimid Nature\n- Shadow Ball\n- Sludge Bomb\n- Thunderbolt\n- Focus Blast\n\nGyarados @ Leftovers\nAbility: Intimidate\nLevel: 50\nAdamant Nature\n- Waterfall\n- Ice Fang\n- Earthquake\n- Dragon Dance\n\nAlakazam @ Focus Sash\nAbility: Magic Guard\nLevel: 50\nTimid Nature\n- Psychic\n- Shadow Ball\n- Focus Blast\n- Energy Ball\n\nRhydon @ Assault Vest\nAbility: Lightning Rod\nLevel: 50\nAdamant Nature\n- Earthquake\n- Stone Edge\n- Megahorn\n- Ice Punch\n\nVenusaur @ Black Sludge\nAbility: Chlorophyll\nLevel: 50\nModest Nature\n- Giga Drain\n- Sludge Bomb\n- Earth Power\n- Synthesis\n\nArcanine @ Choice Band\nAbility: Intimidate\nLevel: 50\nJolly Nature\n- Flare Blitz\n- Extreme Speed\n- Wild Charge\n- Close Combat"
+    },
+    {
+      "id": "exemplo-torres",
+      "nome": "Eco das Torres",
+      "autor": "Exemplo da Firma",
+      "skin": "MHF_Steve",
+      "formato": "singles",
+      "dex": [
+        248,
+        212,
+        181,
+        197,
+        230,
+        214
+      ],
+      "showdown": "Tyranitar @ Choice Band\nAbility: Sand Stream\nLevel: 50\nAdamant Nature\n- Stone Edge\n- Crunch\n- Earthquake\n- Ice Punch\n\nScizor @ Choice Band\nAbility: Technician\nLevel: 50\nAdamant Nature\n- Bullet Punch\n- U-turn\n- Close Combat\n- Knock Off\n\nAmpharos @ Leftovers\nAbility: Static\nLevel: 50\nModest Nature\n- Thunderbolt\n- Dragon Pulse\n- Focus Blast\n- Volt Switch\n\nUmbreon @ Leftovers\nAbility: Synchronize\nLevel: 50\nCalm Nature\n- Foul Play\n- Wish\n- Protect\n- Toxic\n\nKingdra @ Life Orb\nAbility: Swift Swim\nLevel: 50\nModest Nature\n- Hydro Pump\n- Draco Meteor\n- Ice Beam\n- Flash Cannon\n\nHeracross @ Flame Orb\nAbility: Guts\nLevel: 50\nJolly Nature\n- Close Combat\n- Megahorn\n- Knock Off\n- Facade"
+    },
+    {
+      "id": "exemplo-titas",
+      "nome": "Titãs de Hoenn",
+      "autor": "Exemplo da Firma",
+      "skin": "MHF_Steve",
+      "formato": "ubers",
+      "dex": [
+        383,
+        382,
+        384,
+        376,
+        386,
+        378
+      ],
+      "showdown": "Groudon @ Red Orb\nAbility: Drought\nLevel: 100\nAdamant Nature\n- Precipice Blades\n- Heat Crash\n- Stone Edge\n- Swords Dance\n\nKyogre @ Choice Specs\nAbility: Drizzle\nLevel: 100\nModest Nature\n- Water Spout\n- Origin Pulse\n- Ice Beam\n- Thunder\n\nRayquaza @ Life Orb\nAbility: Air Lock\nLevel: 100\nNaive Nature\n- Dragon Ascent\n- Extreme Speed\n- Earthquake\n- V-create\n\nMetagross @ Assault Vest\nAbility: Clear Body\nLevel: 100\nAdamant Nature\n- Meteor Mash\n- Zen Headbutt\n- Earthquake\n- Bullet Punch\n\nDeoxys @ Focus Sash\nAbility: Pressure\nLevel: 100\nTimid Nature\n- Stealth Rock\n- Taunt\n- Psycho Boost\n- Spikes\n\nRegice @ Leftovers\nAbility: Clear Body\nLevel: 100\nCalm Nature\n- Ice Beam\n- Thunderbolt\n- Rest\n- Sleep Talk"
+    }
+  ]
+}
