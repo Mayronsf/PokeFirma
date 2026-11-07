@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowUpRight, BookOpen, ChevronDown, Home, LogOut, Menu, Monitor, Moon, Search, ShieldCheck, Sun, User, Users, X } from 'lucide-react';
 import { config } from '../config';
@@ -126,6 +127,18 @@ export function Header() {
   const admin = useSouAdmin(user?.uid);
   const loc = useLocation();
   useEffect(() => setOpen(false), [loc.pathname]);
+  // Menu aberto: trava a rolagem da página por baixo e fecha com Esc.
+  useEffect(() => {
+    if (!open) return;
+    const antes = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    window.addEventListener('keydown', esc);
+    return () => {
+      document.body.style.overflow = antes;
+      window.removeEventListener('keydown', esc);
+    };
+  }, [open]);
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
   }, [open]);
@@ -153,7 +166,9 @@ export function Header() {
           </button>
         </div>
       </div>
-      {open && (
+      {/* fora do header: o backdrop-filter do header prenderia o menu "tela cheia" dentro dele */}
+      {open &&
+        createPortal(
         <div className="mobile-sheet" id="menu-movel" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="mobile-sheet-top">
             <LogoSlot />
@@ -188,7 +203,9 @@ export function Header() {
             <CopyIP compact />
           </div>
         </div>
-      )}
+      ,
+          document.body,
+        )}
     </header>
   );
 }

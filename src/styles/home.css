@@ -1222,3 +1222,130 @@ span.hero-skin {
     opacity: 0;
   }
 }
+
+/* ============ celular / tablet: revisão de responsividade ============ */
+/* o balanço do boneco 2D vai no próprio bloco (que já tem o filtro de sombra):
+   animar um filho de um elemento com filtro obrigava a redesenhar a sombra a cada quadro */
+.hero-skin:not(.is-3d) .hero-skin-2d {
+  animation: none;
+}
+.hero-skin:not(.is-3d) {
+  animation: skin-bob2 3.6s ease-in-out infinite;
+}
+.hero-skin.right:not(.is-3d) {
+  animation-delay: -1.8s;
+}
+@keyframes skin-bob2 {
+  50% {
+    translate: 0 -6px;
+  }
+}
+
+@media (max-width: 900px) {
+  /* os dois bonecos ficam EM CIMA do card, com os pés na borda dele, sem cobrir o conteúdo */
+  .hero-stage {
+    --skin-h: clamp(150px, 40vw, 230px);
+    margin-top: 18px;
+    padding-bottom: 32px;
+  }
+  .hero-stage span.hero-skin {
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: auto;
+    height: var(--skin-h);
+    z-index: 3;
+    filter: drop-shadow(0 0 1px rgb(166 220 114 / 0.5)) drop-shadow(0 14px 14px rgb(0 0 0 / 0.5));
+  }
+  .hero-stage .hero-skin.left {
+    left: max(6px, 7%);
+    right: auto;
+  }
+  .hero-stage .hero-skin.right {
+    right: max(6px, 7%);
+    left: auto;
+  }
+  .hero-card {
+    margin-top: calc(var(--skin-h) - 16px);
+    min-height: 0;
+  }
+  .hero-card-inner {
+    padding-top: 40px;
+  }
+
+  /* carta levantada pelo toque = mesmo visual do hover */
+  .legend-fan li.armed {
+    transform: translateY(calc(abs(var(--i)) * 26px)) rotate(0deg);
+    z-index: 20;
+  }
+  .legend-fan li.armed .legend-card {
+    transform: translateY(-18px) scale(1.04);
+    box-shadow: inset 0 0 0 2px var(--grass-400), inset 0 -6px 0 rgb(0 0 0 / 0.3), 0 26px 50px rgb(0 0 0 / 0.55);
+  }
+  .legend-fan.has-armed li:not(.armed) .legend-card {
+    filter: brightness(0.72) saturate(0.85);
+  }
+  .legend-fan li.armed .legend-art img {
+    transform: translateY(-6px) scale(1.08);
+    animation: legend-roar 0.5s ease-out 0.15s;
+  }
+}
+.legend-tap-hint {
+  display: none;
+}
+@media (hover: none) {
+  .legend-fan li.armed .legend-tap-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--grass-300);
+  }
+  /* no celular o botão de som aparece (o som sai no toque) */
+  .legend-sound {
+    display: inline-flex;
+    top: 14px;
+    bottom: auto;
+    right: 12px;
+    padding: 6px 10px;
+  }
+  /* sem hover no toque: evita a carta "grudar" levantada depois de rolar a página */
+  .legend-fan li:hover:not(.armed) {
+    transform: translateY(calc(abs(var(--i)) * 26px)) rotate(calc(var(--i) * 8deg));
+  }
+  .legend-fan li:hover:not(.armed) .legend-card {
+    transform: none;
+    box-shadow: inset 0 0 0 2px var(--char-600), inset 0 -6px 0 rgb(0 0 0 / 0.3), var(--shadow-dark);
+  }
+  .legend-fan li:nth-child(3):hover:not(.armed) .legend-card {
+    box-shadow: inset 0 0 0 2px var(--grass-400), inset 0 -6px 0 rgb(0 0 0 / 0.3), var(--shadow-dark);
+  }
+  .legend-fan:has(li:hover) li:not(:hover) .legend-card {
+    filter: none;
+  }
+  .legend-fan.has-armed li:not(.armed) .legend-card {
+    filter: brightness(0.72) saturate(0.85);
+  }
+  .legend-fan li:hover:not(.armed) .legend-art img {
+    transform: none;
+    animation: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-skin:not(.is-3d) {
+    animation: none;
+  }
+}
+@media (min-width: 901px) and (max-width: 1100px) {
+  /* o boneco 3D é mais largo que o 2D: afasta da borda da tela */
+  .hero-stage .hero-skin {
+    height: 270px;
+  }
+  .hero-stage .hero-skin.left {
+    left: 26px;
+  }
+  .hero-stage .hero-skin.right {
+    right: 26px;
+  }
+}

@@ -608,3 +608,9 @@ textarea.input {
     animation: none !important;
   }
 }
+
+/* nenhuma página rola para o lado no celular (clip não quebra o position: sticky) */
+html,
+body {
+  overflow-x: clip;
+}

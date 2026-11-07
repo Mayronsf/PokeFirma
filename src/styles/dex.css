@@ -841,3 +841,54 @@
     min-width: 38px;
   }
 }
+
+/* evolução em coluna no celular: nada fica escondido à direita */
+@media (max-width: 640px) {
+  .evo {
+    overflow-x: visible;
+  }
+  .evo-branch,
+  .evo-step {
+    flex-direction: column;
+    align-items: center;
+  }
+  .evo-children {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    justify-content: center;
+    width: 100%;
+  }
+  .evo-how {
+    flex-direction: column;
+    text-align: center;
+    max-width: none;
+  }
+  .evo-how svg {
+    transform: rotate(90deg);
+  }
+  .evo-mon {
+    min-width: 0;
+    width: 100%;
+    max-width: 150px;
+  }
+}
+@media (max-width: 640px) {
+  /* várias evoluções (ex.: Eevee): duas por linha em vez de 8 colunas espremidas */
+  .evo-children {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 8px;
+  }
+  .evo-children > .evo-step {
+    flex: 0 1 calc(50% - 4px);
+    min-width: 0;
+  }
+  .evo-children > .evo-step:only-child {
+    flex-basis: 100%;
+  }
+  .evo-how {
+    font-size: 0.74rem;
+    overflow-wrap: anywhere;
+  }
+}

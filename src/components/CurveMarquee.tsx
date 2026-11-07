@@ -1,11 +1,16 @@
 import { useEffect, useRef } from 'react';
 
-const REPEATS = 14;
+/** Repetições da frase: o suficiente para cobrir a curva inteira mais uma frase de folga. */
+const REPEATS = 4;
 
 /**
  * Faixa curva com texto repetido (SVG textPath). O deslocamento anda exatamente uma
- * frase por ciclo, então o loop é contínuo. Para quando o sistema pede menos movimento
- * ou quando a faixa sai da tela.
+ * frase por ciclo, então o loop é contínuo.
+ *
+ * Desempenho (principalmente no celular): o comprimento da frase é medido UMA vez (e de novo só
+ * quando as fontes carregam ou a tela muda de tamanho). Medir a cada quadro forçava o navegador a
+ * recalcular o texto o tempo todo, o que travava e fazia a faixa "teleportar".
+ * Para quando o sistema pede menos movimento, quando a faixa sai da tela ou a aba fica oculta.
  */
 export function CurveMarquee({ text, flip = false }: { text: string; flip?: boolean }) {
   const tp = useRef<SVGTextPathElement>(null);
@@ -17,35 +22,57 @@ export function CurveMarquee({ text, flip = false }: { text: string; flip?: bool
     let visible = true;
     let pos = 0;
     let last = performance.now();
-    const unit = () => (textEl.current ? textEl.current.getComputedTextLength() / REPEATS : 300);
+    let unit = 0;
+    let lastOffset = NaN;
+    const medir = () => {
+      const len = textEl.current?.getComputedTextLength() ?? 0;
+      if (len > 0) unit = len / REPEATS;
+    };
     const apply = () => {
-      const u = unit();
-      const o = flip ? -u + (pos % u) : -(pos % u);
-      tp.current?.setAttribute('startOffset', String(o - u));
+      if (!unit) medir();
+      const u = unit || 300;
+      const o = (flip ? -u + (pos % u) : -(pos % u)) - u;
+      // arredonda para não reescrever o atributo por frações invisíveis
+      const r = Math.round(o * 4) / 4;
+      if (r !== lastOffset) {
+        lastOffset = r;
+        tp.current?.setAttribute('startOffset', String(r));
+      }
     };
     const step = (now: number) => {
-      const dt = Math.min(64, now - last);
+      const dt = Math.min(48, now - last);
       last = now;
       pos += dt * 0.06;
+      if (unit && pos > unit * 1000) pos %= unit;
       apply();
-      if (visible && !reduce.matches) raf = requestAnimationFrame(step);
+      if (visible && !document.hidden && !reduce.matches) raf = requestAnimationFrame(step);
     };
     const start = () => {
       cancelAnimationFrame(raf);
       last = performance.now();
-      if (!reduce.matches) raf = requestAnimationFrame(step);
+      if (visible && !document.hidden && !reduce.matches) raf = requestAnimationFrame(step);
     };
     const io = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting;
       if (visible) start();
+      else cancelAnimationFrame(raf);
     });
     if (svg.current) io.observe(svg.current);
-    document.fonts?.ready.then(apply);
+    const remedir = () => {
+      unit = 0;
+      medir();
+      apply();
+    };
+    document.fonts?.ready.then(remedir);
+    window.addEventListener('resize', remedir);
+    document.addEventListener('visibilitychange', start);
     apply();
     start();
     return () => {
       cancelAnimationFrame(raf);
       io.disconnect();
+      window.removeEventListener('resize', remedir);
+      document.removeEventListener('visibilitychange', start);
     };
   }, [flip]);
   const id = flip ? 'curve-b' : 'curve-a';

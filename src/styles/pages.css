@@ -1918,3 +1918,43 @@ dialog.tfull::backdrop {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* torneio no celular */
+@media (max-width: 560px) {
+  .tbracket {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    overflow: visible;
+    gap: 18px;
+  }
+  .tfull .tq {
+    display: none;
+  }
+  .ttable th,
+  .ttable td {
+    padding: 7px 6px;
+  }
+  .ttable.full {
+    min-width: 560px;
+  }
+  /* jogador fica visível enquanto a tabela completa rola para o lado */
+  .ttable.full th[scope='row'],
+  .ttable.full thead th:nth-child(2) {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--surface, #fffdf7);
+  }
+  .ttable.full tbody tr.classifica th[scope='row'] {
+    background: #eef3e2;
+  }
+  .tdetail {
+    gap: 22px;
+  }
+  .tmatch-row {
+    gap: 6px;
+  }
+  .tj {
+    gap: 5px;
+  }
+}
