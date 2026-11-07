@@ -21,7 +21,7 @@ export const config = {
 
   modpack: {
     nome: 'Firma League: Cobblemon, Tech & História',
-    versao: '2.7.0',
+    versao: '2.8.0',
     /** Data de publicação da versão, formato ISO (aaaa-mm-dd). */
     dataVersao: null as string | null,
     minecraft: '1.21.1',
@@ -30,14 +30,14 @@ export const config = {
     java: 'Java 21',
     ramCliente: '4 GB a 6 GB',
     ramServidor: '6 GB a 8 GB',
-    modsCliente: 122,
-    modsServidor: 109,
+    modsCliente: 130,
+    modsServidor: 115,
     downloads: {
-      /** Cliente completo: Firma-League-NeoForge-2.7.0.zip */
+      /** Cliente completo: Firma-League-NeoForge-2.8.0.zip */
       cliente: null as string | null,
       /** Atualização rápida: Firma-League-NeoForge-Atualizacao.zip (98.6 MB) */
       atualizacao: null as string | null,
-      /** Servidor dedicado: Firma-League-Server-NeoForge-2.7.0.zip (301.4 MB) */
+      /** Servidor dedicado: Firma-League-Server-NeoForge-2.8.0.zip */
       servidor: null as string | null,
     },
   },
@@ -53,10 +53,10 @@ export const config = {
    * Fonte prevista: config/rctmod-server.toml do modpack.
    */
   levelCaps: {
-    1: null,
-    2: null,
-    3: null,
-    4: null,
+    1: 60,
+    2: 75,
+    3: 90,
+    4: 100,
   } as Record<1 | 2 | 3 | 4, number | null>,
 
   /** Folga de segurança sobre o level cap, segundo o regulamento (+5 a +8). */

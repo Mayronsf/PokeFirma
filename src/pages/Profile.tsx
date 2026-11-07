@@ -1,12 +1,14 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Award, Check, ExternalLink, LogOut, RotateCcw, Trash2, Upload } from 'lucide-react';
+import { Award, BadgeCheck, Check, ExternalLink, LogOut, RotateCcw, Trash2, Upload } from 'lucide-react';
 
 const SkinViewer3D = lazy(() => import('../components/SkinViewer3D'));
 import { BadgeEmblem } from '../components/BadgeEmblem';
 import { ChapterPicker } from '../components/Quest';
 import { Consult } from '../components/Shell';
 import { TeamCard, TeamSprites } from '../components/TeamCard';
+import { TreinadorJogo } from '../components/Treinador';
+import { VinculoMinecraft } from '../components/Vinculo';
 import { Note, SkinBody, SkinHead, useSkinDe } from '../components/ui';
 import { insignias } from '../content/lore';
 import { useDexIndex } from '../lib/hooks';
@@ -19,6 +21,7 @@ import '../styles/lore.css';
 import '../styles/home.css';
 import '../styles/team.css';
 import '../styles/pages.css';
+import '../styles/jogo.css';
 
 export function BadgeCase({ owned, onToggle }: { owned: string[]; onToggle?: (id: string) => void }) {
   return (
@@ -177,6 +180,14 @@ export default function Profile() {
                 <SkinHead nick={profile.nick || 'MHF_Steve'} size={64} className="trainer-avatar" />
                 <h2 className="display trainer-nick">{profile.nick || 'Sem nick'}</h2>
               </div>
+              {profile.verificado && (
+                <p className="trainer-verif">
+                  <span className="selo-verificado">
+                    <BadgeCheck size={14} aria-hidden /> Verificado
+                  </span>{' '}
+                  <span className="trainer-id">{profile.trainer_id}</span>
+                </p>
+              )}
               {profile.bio && <p className="trainer-bio">{profile.bio}</p>}
               <dl className="trainer-facts">
                 <div>
@@ -241,7 +252,7 @@ export default function Profile() {
             onSubmit={(e) => {
               e.preventDefault();
               if (!nickOk) return;
-              salvarPerfil({ nick: nick.trim(), bio: bio.trim(), favorito: favEntry?.id ?? null });
+              salvarPerfil({ ...(profile.verificado ? {} : { nick: nick.trim() }), bio: bio.trim(), favorito: favEntry?.id ?? null });
               setSaved(true);
               setTimeout(() => setSaved(false), 2500);
             }}
@@ -249,7 +260,21 @@ export default function Profile() {
             <h2 className="panel-title">Dados</h2>
             <label className="field">
               <span>Nick do Minecraft</span>
-              <input className="input" value={nick} maxLength={16} onChange={(e) => setNick(e.target.value)} aria-invalid={!nickOk} spellCheck={false} />
+              <input
+                className="input"
+                value={nick}
+                maxLength={16}
+                onChange={(e) => setNick(e.target.value)}
+                aria-invalid={!nickOk}
+                spellCheck={false}
+                readOnly={!!profile.verificado}
+                aria-describedby={profile.verificado ? 'nick-verif' : undefined}
+              />
+              {profile.verificado && (
+                <span id="nick-verif" className="small muted">
+                  Vem do servidor Minecraft (conta verificada).
+                </span>
+              )}
               {!nickOk && <span className="field-err">Use 3 a 16 caracteres: letras, números e _.</span>}
             </label>
             <label className="field">
@@ -303,6 +328,16 @@ export default function Profile() {
           </form>
         </div>
 
+        {user && (
+          <section className="dex-panel" aria-labelledby="mc-title">
+            <h2 id="mc-title" className="panel-title">
+              Conta do Minecraft
+            </h2>
+            <VinculoMinecraft />
+          </section>
+        )}
+        {profile.verificado && <TreinadorJogo uuid={profile.minecraft_uuid} dono />}
+
         <SkinSection />
 
         <section className="dex-panel" aria-labelledby="cap-title">
@@ -318,14 +353,19 @@ export default function Profile() {
             <h2 id="ins-title" className="panel-title">
               Insígnias
             </h2>
-            <span className="muted small">Toque para marcar as que você já tem.</span>
+            <span className="muted small">
+              {profile.verificado ? 'Sincronizadas com o servidor: aparecem sozinhas quando você vence.' : 'Toque para marcar as que você já tem.'}
+            </span>
           </div>
           <BadgeCase
             owned={profile.insignias}
-            onToggle={(id) =>
-              salvarPerfil({
-                insignias: profile.insignias.includes(id) ? profile.insignias.filter((x) => x !== id) : [...profile.insignias, id],
-              })
+            onToggle={
+              profile.verificado
+                ? undefined
+                : (id) =>
+                    salvarPerfil({
+                      insignias: profile.insignias.includes(id) ? profile.insignias.filter((x) => x !== id) : [...profile.insignias, id],
+                    })
             }
           />
         </section>

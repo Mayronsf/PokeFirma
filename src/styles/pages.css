@@ -1958,3 +1958,74 @@ dialog.tfull::backdrop {
     gap: 5px;
   }
 }
+
+.player-tid {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--grass-500);
+  color: var(--char-950);
+  font-family: var(--font-pixel);
+  font-size: 0.62rem;
+  font-weight: 400;
+  vertical-align: middle;
+}
+.trainer-verif {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+/* painel: vínculo dos jogadores */
+.admin-player-nome {
+  display: grid;
+  line-height: 1.15;
+}
+.admin-player-nome .tid {
+  font-family: var(--font-pixel);
+  font-size: 0.62rem;
+  font-weight: 400;
+  color: var(--text-3);
+}
+.admin-player-nome .tid.ok {
+  color: var(--grass-700);
+}
+.admin-semvinculo {
+  margin: -4px 0 14px;
+}
+.admin-semvinculo summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.admin-semvinculo[open] {
+  display: grid;
+  gap: 8px;
+}
+.admin-semvinculo .admin-add {
+  margin-top: 8px;
+}
+.am-auto {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-weight: 700;
+  color: var(--grass-700);
+}
+.tmatch-score.parcial {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--grass-500);
+}
+.tmatch-andamento {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: center;
+  color: var(--grass-700);
+}

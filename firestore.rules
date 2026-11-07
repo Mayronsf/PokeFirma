@@ -1,17 +1,44 @@
 rules_version = '2';
 
 // Firma League — regras do Cloud Firestore
-// - users/{uid}: perfil privado. Só o dono lê e escreve.
+// - users/{uid}: perfil privado. Só o dono lê e escreve, MENOS os campos de vínculo com o Minecraft
+//   (verificado, trainer_id, minecraft_uuid…), que só o servidor grava (funções /api com Admin SDK,
+//   que ignoram estas regras). Conta verificada também não muda nick nem insígnias pelo navegador:
+//   eles vêm do jogo.
 // - users/{uid}/teams/{teamId}: times. O dono lê e escreve; times com publico == true podem ser lidos por todos.
-// - publicProfiles/{nickLower}: vitrine pública do perfil (/jogador/{nick}). Todos leem; só o dono escreve.
+// - publicProfiles/{nickLower}: vitrine pública do perfil (/jogador/{nick}). Todos leem; o dono escreve
+//   com as mesmas travas acima.
+// - treinadores/{uuid}: time, PC e Pokédex vindos do jogo. Só o servidor escreve; todos leem se publico == true.
+// - vinculos, link_tokens: só o servidor.
 service cloud.firestore {
   match /databases/{database}/documents {
 
     function signedIn() { return request.auth != null; }
     function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
 
+    // Campos que só o servidor grava.
+    function camposServidor() {
+      return ['verificado', 'trainer_id', 'minecraft_uuid', 'vinculadoEm', 'level_cap', 'pokedexResumo', 'ultimoVinculo'];
+    }
+    function mexeEm(campos) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny(campos);
+    }
+    function criaCom(campos) {
+      return request.resource.data.keys().hasAny(campos);
+    }
+    function verificado() {
+      return resource.data.get('verificado', false) == true;
+    }
+    // Atualização permitida pelo navegador: não toca nos campos do servidor e,
+    // se a conta for verificada, também não muda nick nem insígnias.
+    function updateDoNavegador() {
+      return !mexeEm(camposServidor()) && (!verificado() || !mexeEm(['nick', 'insignias']));
+    }
+
     match /users/{uid} {
-      allow read, write: if isOwner(uid);
+      allow read, delete: if isOwner(uid);
+      allow create: if isOwner(uid) && !criaCom(camposServidor());
+      allow update: if isOwner(uid) && updateDoNavegador();
 
       match /teams/{teamId} {
         allow read: if isOwner(uid) || resource.data.publico == true;
@@ -37,7 +64,8 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Dados da Liga (ranking e torneios): todos leem, só admins escrevem (painel /admin).
+    // Dados da Liga (ranking e torneios) e liga/meta: todos leem, só admins escrevem pelo site
+    // (o servidor Minecraft grava pelas funções /api).
     match /liga/{doc} {
       allow read: if true;
       allow write: if isAdmin();
@@ -45,8 +73,23 @@ service cloud.firestore {
 
     match /publicProfiles/{nick} {
       allow read: if true;
-      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
-      allow update, delete: if signedIn() && resource.data.uid == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid && !criaCom(camposServidor());
+      allow update: if signedIn() && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid
+        && updateDoNavegador();
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Dados do jogo: só o servidor escreve.
+    match /treinadores/{uuid} {
+      allow read: if resource.data.publico == true || (signedIn() && resource.data.uid == request.auth.uid);
+      allow write: if false;
+    }
+    match /vinculos/{uuid} {
+      allow read, write: if false;
+    }
+    match /link_tokens/{token} {
+      allow read, write: if false;
     }
   }
 }

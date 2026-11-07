@@ -105,6 +105,37 @@ Busca pelo nick entre os jogadores do ranking e os perfis públicos (Firestore `
 
 Pela CLI: `npm i -g vercel`, depois `vercel` e `vercel --prod`.
 
+## Integração com o servidor Minecraft (`/api`)
+
+Funções da Vercel na pasta `api/` (Node + `firebase-admin`). Variáveis na Vercel:
+
+| Variável | O que é |
+|---|---|
+| `FIREBASE_SERVICE_ACCOUNT` | JSON da conta de serviço (Firebase → Configurações do projeto → Contas de serviço → Gerar nova chave privada). Pode colar o JSON inteiro ou em base64. |
+| `MINECRAFT_SECRET` | Segredo compartilhado com o KubeJS. O servidor manda em todo POST no header `X-Minecraft-Secret`. |
+
+Rotas (todas `POST` com JSON; resposta `{ ok: true, ... }` ou `{ ok: false, erro }`):
+
+| Rota | Quem chama | Corpo |
+|---|---|---|
+| `/api/minecraft/link/create` | servidor (`/vincular`) | `{ token, minecraft_uuid, minecraft_nick, expires_at }` (ms ou s; máx. 1 h) |
+| `/api/minecraft/sync/player` | servidor | `{ uuid, nick, capitulo, level_cap, insignias[], pokedex{vistos[],capturados[]}, party[], pc[] }`: campos ausentes ficam como estavam |
+| `/api/minecraft/tournament/match-result` | servidor (fim de cada batalha) | `{ torneio_id, winner_uuid, loser_uuid, ko_winner, ko_loser, team_winner_dex[], team_loser_dex[], battle_id? }` |
+| `/api/link/redeem` | site (`Authorization: Bearer <ID token>`) | `{ token }`: gera o Trainer ID (`TR-001`…) e marca a conta como verificada |
+
+- **Pokémon** (party/pc): `dex, especie, forma, apelido, nivel, shiny, sexo ("M"/"F"), habilidade, natureza, item, golpes[], ivs{hp,atk,def,spa,spd,spe}, evs{…}, tera, bola, amizade`. No PC também `caixa` e `slot`. Nomes em inglês (`species`, `level`, `gender`, `moves`, `box`…) também são aceitos.
+- **Insígnias**: mesmos IDs do site (`kanto-1`…`kanto-8`, `kanto-elite`, `kanto-campeao`, idem johto/hoenn/sinnoh). IDs desconhecidos são ignorados.
+- **Torneios**: cada chamada é **uma batalha**. O confronto fecha quando alguém vence a maioria (MD1/MD3, configurável no painel por torneio). Ao fechar, a rota preenche placar, KOs e times e soma **+3 pts / +1 V** e **+1 D** no ranking. Na Final, define o campeão. Mande `battle_id` para que reenvios não contem duas vezes. Os jogadores precisam estar **inscritos ou no ranking com o vínculo** (UUID).
+- Dados do jogo ficam em `treinadores/{uuid}` (o site lê ao vivo); `vinculos/{uuid}` liga o UUID à conta do site. As regras do Firestore impedem o navegador de gravar `verificado`, `trainer_id`, `minecraft_uuid` e, em conta verificada, nick e insígnias.
+
+Testar à mão (troque o segredo):
+
+```bash
+curl -X POST https://poke-firma.vercel.app/api/minecraft/link/create \
+  -H "Content-Type: application/json" -H "X-Minecraft-Secret: SEU_SEGREDO" \
+  -d '{"token":"FIRMA-TESTE","minecraft_uuid":"d94721b0-7454-4d13-a691-d76a9c40cf4c","minecraft_nick":"Mayronsf","expires_at":9999999999999}'
+```
+
 ## Serviços externos
 
 - **PokéAPI** (pokeapi.co): a lista leve (nomes + tipos) é montada uma vez por mês e guardada no IndexedDB; detalhes só quando o Pokémon é aberto, também em cache. Nenhuma página baixa a Pokédex inteira.

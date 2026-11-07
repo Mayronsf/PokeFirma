@@ -1,27 +1,31 @@
 import { Link, useParams } from 'react-router-dom';
-import { Award } from 'lucide-react';
+import { Award, BadgeCheck } from 'lucide-react';
 import { Consult } from '../components/Shell';
 import { TeamCard } from '../components/TeamCard';
 import { ErrorRetry, SkinBody, SkinHead } from '../components/ui';
 import { TeamSprites } from '../components/TeamCard';
 import { novoSlot } from '../lib/team';
 import { firebaseEnabled } from '../lib/firebase';
-import { useAsync, useDexIndex } from '../lib/hooks';
+import { useDexIndex } from '../lib/hooks';
+import { usePerfilPublico } from '../lib/jogo';
+import { TreinadorJogo } from '../components/Treinador';
 import { useLiga } from '../lib/liga';
 import { artworkUrl } from '../lib/pokeapi';
-import { lerPerfilPublico } from '../lib/store';
 import { BadgeCase } from './Profile';
 import '../styles/dex.css';
 import '../styles/lore.css';
 import '../styles/home.css';
 import '../styles/team.css';
 import '../styles/pages.css';
+import '../styles/jogo.css';
 
 export default function PlayerPublic() {
   const { nick = '' } = useParams();
   const { data: ligaData, titulosDe, ranking } = useLiga();
   const idx = useDexIndex();
-  const q = useAsync(() => lerPerfilPublico(nick), [nick]);
+  // ao vivo: insígnias e dados do jogo mudam na tela sem recarregar
+  const pp = usePerfilPublico(nick);
+  const q = { data: pp.perfil ? { perfil: pp.perfil, times: pp.times } : null, loading: pp.carregando, error: pp.erro, retry: pp.retry };
   const liga = ligaData.jogadores.find((j) => j.nick.toLowerCase() === nick.toLowerCase());
   const titulos = titulosDe(nick);
   const p = q.data?.perfil;
@@ -55,6 +59,14 @@ export default function PlayerPublic() {
                   <SkinHead nick={liga?.skin ?? p?.nick ?? nick} skin={p?.skin || undefined} size={64} className="trainer-avatar" />
                   <h2 className="display trainer-nick">{p?.nick ?? liga?.nick}</h2>
                 </div>
+                {(p?.verificado || liga?.trainer_id) && (
+                  <p className="trainer-verif">
+                    <span className="selo-verificado">
+                      <BadgeCheck size={14} aria-hidden /> Verificado
+                    </span>{' '}
+                    <span className="trainer-id">{p?.trainer_id ?? liga?.trainer_id}</span>
+                  </p>
+                )}
                 <dl className="trainer-facts">
                   {liga && (
                     <>
@@ -109,6 +121,7 @@ export default function PlayerPublic() {
                 </ul>
               </section>
             )}
+            {p?.verificado && p.minecraft_uuid && <TreinadorJogo uuid={p.minecraft_uuid} />}
             {p && (
               <section className="dex-panel">
                 <h2 className="panel-title">Insígnias</h2>

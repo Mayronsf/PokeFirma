@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search, X } from 'lucide-react';
+import { BadgeCheck, Search, X } from 'lucide-react';
 import { Consult } from '../components/Shell';
 import { SkinHead } from '../components/ui';
 import { firebaseEnabled } from '../lib/firebase';
@@ -17,6 +17,7 @@ interface Resultado {
   pontos?: number;
   bio?: string;
   temPerfil: boolean;
+  trainer_id?: string;
 }
 
 export default function Jogadores() {
@@ -48,12 +49,12 @@ export default function Jogadores() {
     const map = new Map<string, Resultado>();
     ranking.forEach((j, i) => {
       if (term && !j.nick.toLowerCase().includes(term)) return;
-      map.set(j.nick.toLowerCase(), { nick: j.nick, skinNick: j.skin || j.nick, pos: i + 1, pontos: j.pontos, temPerfil: false });
+      map.set(j.nick.toLowerCase(), { nick: j.nick, skinNick: j.skin || j.nick, pos: i + 1, pontos: j.pontos, temPerfil: false, trainer_id: j.trainer_id ?? undefined });
     });
     for (const p of perfis) {
       const k = p.nick.toLowerCase();
       const cur = map.get(k);
-      map.set(k, { ...(cur ?? { nick: p.nick, skinNick: p.nick }), skin: p.skin || undefined, bio: p.bio, temPerfil: true });
+      map.set(k, { ...(cur ?? { nick: p.nick, skinNick: p.nick }), skin: p.skin || undefined, bio: p.bio, temPerfil: true, trainer_id: (p.verificado && p.trainer_id) || cur?.trainer_id });
     }
     return [...map.values()].sort((a, b) => (a.pos ?? 999) - (b.pos ?? 999) || a.nick.localeCompare(b.nick));
   }, [ranking, perfis, q]);
@@ -99,7 +100,14 @@ export default function Jogadores() {
                 <Link to={`/jogador/${encodeURIComponent(r.nick)}`} className="player-card">
                   <SkinHead nick={r.skinNick} skin={r.skin} size={48} />
                   <span className="player-main">
-                    <b>{r.nick}</b>
+                    <b>
+                      {r.nick}
+                      {r.trainer_id && (
+                        <span className="player-tid" title="Conta verificada no servidor">
+                          <BadgeCheck size={13} aria-hidden /> {r.trainer_id}
+                        </span>
+                      )}
+                    </b>
                     <span className="muted small">{r.bio || (r.temPerfil ? 'Perfil público' : 'Jogador da Liga')}</span>
                   </span>
                   {r.pos && (

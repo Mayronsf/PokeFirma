@@ -8,60 +8,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import ligaJson from '@data/liga.json';
 import { fb, firebaseEnabled } from './firebase';
 
-export type StatusTorneio = 'em-breve' | 'em-andamento' | 'encerrado';
-export interface Jogador {
-  nick: string;
-  skin?: string;
-  pontos: number;
-  vitorias: number;
-  derrotas: number;
-  titulos: string[];
-}
-export interface Partida {
-  fase: string;
-  a: string | null;
-  b: string | null;
-  /** Texto do placar ("2–1"). Mantido em sincronia com pa/pb pelo painel. */
-  placar: string | null;
-  /** Grupo da partida (só na fase de grupos). */
-  grupo?: string | null;
-  /** Partidas (games) vencidas por A e por B. */
-  pa?: number | null;
-  pb?: number | null;
-  /** Pokémon do adversário que A derrotou / que B derrotou. */
-  koA?: number | null;
-  koB?: number | null;
-  /** Nº da Pokédex dos Pokémon que cada um levou para esta partida. */
-  timeA?: number[];
-  timeB?: number[];
-}
-export interface Inscricao {
-  nick: string;
-  grupo?: string | null;
-  /** Elenco inscrito (até 8, nº da Pokédex). */
-  pokemon: number[];
-}
-export interface Torneio {
-  id: string;
-  nome: string;
-  capitulo: number;
-  formato: string;
-  status: StatusTorneio;
-  data: string | null;
-  campeao: string | null;
-  chave: Partida[];
-  /** Nomes dos grupos ("A", "B"…). Vazio = grupo único. */
-  grupos?: string[];
-  /** Quantos de cada grupo vão para o mata-mata. */
-  classificados?: number;
-  inscritos?: Inscricao[];
-}
-export interface LigaData {
-  exemplo: boolean;
-  atualizadoEm: string;
-  jogadores: Jogador[];
-  torneios: Torneio[];
-}
+export * from './ligaTipos';
+import type { Jogador, LigaData, Torneio } from './ligaTipos';
 
 export const ligaArquivo: LigaData = (() => {
   const { exemplo, atualizadoEm, jogadores, torneios } = ligaJson as unknown as LigaData;
@@ -69,6 +17,13 @@ export const ligaArquivo: LigaData = (() => {
 })();
 
 const LS = 'firma:liga-local';
+
+/** A Liga mudou na nuvem (ex.: resultado automático do servidor) desde que o painel começou a editar. */
+export class ConflitoLiga extends Error {
+  constructor() {
+    super('A Liga foi atualizada enquanto você editava.');
+  }
+}
 
 type Origem = 'nuvem' | 'local' | 'arquivo';
 interface Ctx {
@@ -124,7 +79,15 @@ export function LigaProvider({ children }: { children: ReactNode }) {
     if (firebaseEnabled) {
       const { db } = await fb();
       const fs = await import('firebase/firestore');
-      await fs.setDoc(fs.doc(db, 'liga', 'dados'), JSON.parse(JSON.stringify(next)));
+      // Transação: se o servidor Minecraft gravou um resultado enquanto o painel editava,
+      // não sobrescreve (o painel recebe ConflitoLiga e pede para recarregar).
+      const ref = fs.doc(db, 'liga', 'dados');
+      await fs.runTransaction(db, async (tx) => {
+        const atual = await tx.get(ref);
+        const revAtual = atual.exists() ? ((atual.data() as LigaData).rev ?? 0) : 0;
+        if (atual.exists() && revAtual !== (d.rev ?? 0)) throw new ConflitoLiga();
+        tx.set(ref, JSON.parse(JSON.stringify({ ...next, rev: revAtual + 1 })));
+      });
       return 'nuvem';
     }
     try {

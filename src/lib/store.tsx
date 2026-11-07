@@ -21,6 +21,20 @@ export interface Profile {
   skin?: string;
   /** Id do time principal (um dos times do jogador). */
   timePrincipal?: string;
+  /* ---- vínculo com o Minecraft: gravados SÓ pelo servidor (/api), o navegador não pode mexer ---- */
+  verificado?: boolean;
+  trainer_id?: string;
+  minecraft_uuid?: string;
+  level_cap?: number;
+  pokedexResumo?: { vistos: number; capturados: number };
+}
+
+/** Campos que o navegador nunca grava (as regras do Firestore também bloqueiam). */
+const CAMPOS_SERVIDOR = ['verificado', 'trainer_id', 'minecraft_uuid', 'level_cap', 'pokedexResumo', 'vinculadoEm', 'ultimoVinculo'] as const;
+function semCamposServidor<T extends object>(o: T): T {
+  const c = { ...o } as Record<string, unknown>;
+  CAMPOS_SERVIDOR.forEach((k) => delete c[k]);
+  return c as T;
 }
 
 export interface TimeResumo {
@@ -50,6 +64,8 @@ interface Ctx {
   sair: () => Promise<void>;
   excluirConta: () => Promise<void>;
   salvarPerfil: (p: Partial<Profile>) => Promise<void>;
+  /** Valida o token do /vincular (gerado no servidor Minecraft) e liga esta conta ao jogador. */
+  vincular: (token: string) => Promise<{ nick: string; trainer_id: string }>;
   salvarTime: (t: Team) => Promise<void>;
   excluirTime: (id: string) => Promise<void>;
   enviarParaNuvem: () => Promise<number>;
@@ -96,11 +112,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!firebaseEnabled) return;
     let unsub = () => {};
+    let unsubPerfil = () => {};
     fb()
       .then(async ({ auth, db }) => {
         const { onAuthStateChanged } = await import('firebase/auth');
         const fs = await import('firebase/firestore');
         unsub = onAuthStateChanged(auth, async (u) => {
+          unsubPerfil();
+          unsubPerfil = () => {};
           if (!u) {
             setUser(null);
             setProfile({ ...perfilVazio, ...lsGet(LS_PERFIL, {}) });
@@ -111,9 +130,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           }
           setUser({ uid: u.uid, nome: u.displayName ?? '', foto: u.photoURL, email: u.email });
           try {
-            const snap = await fs.getDoc(fs.doc(db, 'users', u.uid));
-            const cloud = snap.exists() ? (snap.data() as Partial<Profile>) : {};
-            setProfile({ ...perfilVazio, ...cloud });
+            // Ao vivo: insígnias e capítulo que o servidor Minecraft sincroniza aparecem sem recarregar.
+            await new Promise<void>((ok) => {
+              let primeira = true;
+              unsubPerfil = fs.onSnapshot(
+                fs.doc(db, 'users', u.uid),
+                (snap) => {
+                  const cloud = snap.exists() ? (snap.data() as Partial<Profile>) : {};
+                  setProfile({ ...perfilVazio, ...cloud });
+                  if (primeira) {
+                    primeira = false;
+                    ok();
+                  }
+                },
+                () => {
+                  if (primeira) {
+                    primeira = false;
+                    ok();
+                  }
+                },
+              );
+            });
             const ts = await fs.getDocs(fs.collection(db, 'users', u.uid, 'teams'));
             setTeams(ts.docs.map((d) => ({ ...(d.data() as Team), id: d.id })).sort((a, b) => b.atualizadoEm - a.atualizadoEm));
             setPend(lsGet<Team[]>(LS_TIMES, []).length);
@@ -124,7 +161,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         });
       })
       .catch(() => setPronto(true));
-    return () => unsub();
+    return () => {
+      unsub();
+      unsubPerfil();
+    };
   }, []);
 
   const entrar = useCallback(async () => {
@@ -161,18 +201,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!p.nick) return;
     const ref = fs.doc(db, 'publicProfiles', nickKey(p.nick));
     if (p.perfilPublico) {
-      await fs.setDoc(ref, {
-        uid: u.uid, nick: p.nick, bio: p.bio, favorito: p.favorito, capitulo: p.capitulo, insignias: p.insignias, skin: p.skin || null,
+      const dados: Record<string, unknown> = {
+        uid: u.uid, nick: p.nick, bio: p.bio, favorito: p.favorito, capitulo: p.capitulo, skin: p.skin || null,
         timePrincipal: resumoDe(teamsRef.current.find((t) => t.id === p.timePrincipal)),
-      });
+      };
+      // insígnias de conta verificada vêm do jogo (o servidor grava); as outras o jogador marca
+      if (!p.verificado) dados.insignias = p.insignias;
+      await fs.setDoc(ref, dados, { merge: true });
     } else {
       await fs.deleteDoc(ref).catch(() => {});
     }
   }, []);
 
   const salvarPerfil = useCallback(
-    async (patch: Partial<Profile>) => {
+    async (patchBruto: Partial<Profile>) => {
       const anterior = profile;
+      const patch = semCamposServidor(patchBruto);
+      // conta verificada: nick e insígnias vêm do Minecraft
+      if (anterior.verificado) {
+        delete patch.nick;
+        delete patch.insignias;
+      }
       const next = { ...profile, ...patch };
       setProfile(next);
       const u = userRef.current;
@@ -193,7 +242,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
         const { db } = await fb();
         const fs = await import('firebase/firestore');
-        await fs.setDoc(fs.doc(db, 'users', u.uid), JSON.parse(JSON.stringify(next)), { merge: true });
+        await fs.setDoc(fs.doc(db, 'users', u.uid), JSON.parse(JSON.stringify(patch)), { merge: true });
         await salvarPublico(next, anterior);
       } catch {
         setErro('Não consegui salvar o perfil na nuvem.');
@@ -201,6 +250,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     [profile, salvarPublico],
   );
+
+  const vincular = useCallback(async (token: string) => {
+    if (!firebaseEnabled) throw new Error('Login indisponível neste site.');
+    const { auth } = await fb();
+    const cur = auth.currentUser;
+    if (!cur) throw new Error('Entre com Google primeiro.');
+    const idToken = await cur.getIdToken();
+    let r: Response;
+    try {
+      r = await fetch('/api/link/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ token: token.trim() }),
+      });
+    } catch {
+      throw new Error('Sem conexão com o site. Tente de novo.');
+    }
+    const j = (await r.json().catch(() => ({}))) as { ok?: boolean; erro?: string; nick?: string; trainer_id?: string };
+    if (!r.ok || !j.ok) throw new Error(j.erro || 'Não consegui validar o token.');
+    return { nick: j.nick!, trainer_id: j.trainer_id! };
+  }, []);
 
   const salvarTime = useCallback(
     async (t: Team) => {
@@ -306,10 +376,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const value = useMemo<Ctx>(
     () => ({
       pronto, user, firebaseEnabled, profile, teams, localTeamsPendentes,
-      entrar, sair, excluirConta, salvarPerfil, salvarTime, excluirTime, enviarParaNuvem,
+      entrar, sair, excluirConta, salvarPerfil, vincular, salvarTime, excluirTime, enviarParaNuvem,
       erro, limparErro: () => setErro(null),
     }),
-    [pronto, user, profile, teams, localTeamsPendentes, entrar, sair, excluirConta, salvarPerfil, salvarTime, excluirTime, enviarParaNuvem, erro],
+    [pronto, user, profile, teams, localTeamsPendentes, entrar, sair, excluirConta, salvarPerfil, vincular, salvarTime, excluirTime, enviarParaNuvem, erro],
   );
   return <C.Provider value={value}>{children}</C.Provider>;
 }
@@ -346,6 +416,9 @@ export async function lerTimePublico(uid: string, teamId: string): Promise<Team 
 
 export interface PublicProfile extends Omit<Profile, 'perfilPublico' | 'skin' | 'timePrincipal'> {
   uid: string;
+  verificado?: boolean;
+  trainer_id?: string;
+  minecraft_uuid?: string;
   skin?: string | null;
   timePrincipal?: TimeResumo | null;
 }

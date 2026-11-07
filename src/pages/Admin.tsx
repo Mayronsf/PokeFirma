@@ -4,12 +4,13 @@ import { ArrowRight, ChevronDown, Download, Plus, RotateCcw, Save, ShieldAlert, 
 import { Consult } from '../components/Shell';
 import { Note, SkinHead } from '../components/ui';
 import { firebaseEnabled } from '../lib/firebase';
-import { souAdmin, useLiga, type Jogador, type LigaData, type Partida, type StatusTorneio, type Torneio } from '../lib/liga';
+import { ConflitoLiga, souAdmin, useLiga, type Jogador, type LigaData, type Partida, type StatusTorneio, type Torneio } from '../lib/liga';
 import { useDexIndex } from '../lib/hooks';
 import { spriteUrl } from '../lib/pokeapi';
 import { fmtData } from '../lib/pt';
 import { FASES, FASE_GRUPOS, GRUPO_UNICO, classificadosPorGrupo, gruposDe, placarDe } from '../lib/torneio';
-import { buscarPerfis, useStore } from '../lib/store';
+import { useStore, type PublicProfile } from '../lib/store';
+import { listarVerificados } from '../lib/jogo';
 import '../styles/team.css';
 import '../styles/dex.css';
 import '../styles/pages.css';
@@ -33,23 +34,13 @@ function useAcesso() {
 }
 
 /* ---------- jogadores ---------- */
-function Jogadores({ d, set }: { d: LigaData; set: (d: LigaData) => void }) {
-  const [novo, setNovo] = useState('');
-  const [sugestoes, setSugestoes] = useState<string[]>([]);
-  // Sugere nicks de quem já tem perfil público no site.
-  useEffect(() => {
-    if (!firebaseEnabled) return;
-    let vivo = true;
-    const t = setTimeout(() => {
-      buscarPerfis(novo, 10)
-        .then((r) => vivo && setSugestoes(r.map((p) => p.nick)))
-        .catch(() => {});
-    }, 250);
-    return () => {
-      vivo = false;
-      clearTimeout(t);
-    };
-  }, [novo]);
+/** Rótulo do seletor: "Mayronsf · TR-001 ✓". */
+const rotuloVerificado = (p: { nick: string; trainer_id?: string | null }) => `${p.nick} · ${p.trainer_id ?? 'sem ID'} ✓`;
+
+function Jogadores({ d, set, verificados }: { d: LigaData; set: (d: LigaData) => void; verificados: PublicProfile[] | null }) {
+  const [escolhido, setEscolhido] = useState('');
+  const [semVinculo, setSemVinculo] = useState('');
+  const livres = (verificados ?? []).filter((v) => !d.jogadores.some((j) => (j.uuid && j.uuid === v.minecraft_uuid) || j.nick.toLowerCase() === v.nick.toLowerCase()));
   const upd = (i: number, patch: Partial<Jogador>) => set({ ...d, jogadores: d.jogadores.map((j, k) => (k === i ? { ...j, ...patch } : j)) });
   const ordem = useMemo(() => d.jogadores.map((j, i) => ({ j, i })).sort((a, b) => b.j.pontos - a.j.pontos), [d.jogadores]);
   return (
@@ -60,37 +51,52 @@ function Jogadores({ d, set }: { d: LigaData; set: (d: LigaData) => void }) {
           className="admin-add"
           onSubmit={(e) => {
             e.preventDefault();
-            const n = novo.trim();
-            if (!n || d.jogadores.some((j) => j.nick.toLowerCase() === n.toLowerCase())) return;
-            set({ ...d, jogadores: [...d.jogadores, { nick: n, pontos: 0, vitorias: 0, derrotas: 0, titulos: [] }] });
-            setNovo('');
+            const v = livres.find((x) => x.minecraft_uuid === escolhido);
+            if (!v) return;
+            set({ ...d, jogadores: [...d.jogadores, { nick: v.nick, pontos: 0, vitorias: 0, derrotas: 0, titulos: [], trainer_id: v.trainer_id ?? null, uuid: v.minecraft_uuid ?? null }] });
+            setEscolhido('');
           }}
         >
           <label className="sr-only" htmlFor="novo-jog">
-            Nick do novo jogador
+            Jogador verificado
           </label>
-          <input
-            id="novo-jog"
-            className="input"
-            placeholder="Nick do Minecraft"
-            list="perfis-cadastrados"
-            autoComplete="off"
-            value={novo}
-            onChange={(e) => setNovo(e.target.value)}
-            maxLength={16}
-          />
-          <datalist id="perfis-cadastrados">
-            {sugestoes
-              .filter((n) => !d.jogadores.some((j) => j.nick.toLowerCase() === n.toLowerCase()))
-              .map((n) => (
-                <option key={n} value={n} />
-              ))}
-          </datalist>
-          <button type="submit" className="btn btn-sm">
+          <select id="novo-jog" className="input" value={escolhido} onChange={(e) => setEscolhido(e.target.value)}>
+            <option value="">
+              {verificados === null ? 'Carregando jogadores…' : livres.length ? 'Escolha um jogador verificado' : 'Nenhum verificado fora do ranking'}
+            </option>
+            {livres.map((v) => (
+              <option key={v.minecraft_uuid} value={v.minecraft_uuid}>
+                {rotuloVerificado(v)}
+              </option>
+            ))}
+          </select>
+          <button type="submit" className="btn btn-sm" disabled={!escolhido}>
             <Plus size={15} aria-hidden /> Adicionar
           </button>
         </form>
       </div>
+      <details className="admin-semvinculo">
+        <summary className="small">Adicionar alguém que ainda não vinculou a conta</summary>
+        <form
+          className="admin-add"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const n = semVinculo.trim();
+            if (!/^[A-Za-z0-9_]{3,16}$/.test(n) || d.jogadores.some((j) => j.nick.toLowerCase() === n.toLowerCase())) return;
+            set({ ...d, jogadores: [...d.jogadores, { nick: n, pontos: 0, vitorias: 0, derrotas: 0, titulos: [] }] });
+            setSemVinculo('');
+          }}
+        >
+          <input className="input" placeholder="Nick do Minecraft" value={semVinculo} maxLength={16} onChange={(e) => setSemVinculo(e.target.value)} aria-label="Nick sem vínculo" />
+          <button type="submit" className="btn btn-sm btn-ghost">
+            <Plus size={15} aria-hidden /> Adicionar
+          </button>
+        </form>
+        <p className="muted small">
+          Quando a pessoa vincular a conta com o mesmo nick, o Trainer ID entra aqui sozinho. Resultados automáticos do servidor só funcionam com jogadores
+          vinculados.
+        </p>
+      </details>
       <div className="def-scroll">
         <table className="admin-table">
           <thead>
@@ -121,7 +127,10 @@ function Jogadores({ d, set }: { d: LigaData; set: (d: LigaData) => void }) {
                 <th scope="row">
                   <span className="admin-player">
                     <SkinHead nick={j.skin || j.nick} size={28} />
-                    {j.nick}
+                    <span className="admin-player-nome">
+                      {j.nick}
+                      <small className={j.trainer_id ? 'tid ok' : 'tid'}>{j.trainer_id ? `${j.trainer_id} ✓` : 'sem vínculo'}</small>
+                    </span>
                   </span>
                 </th>
                 {(['pontos', 'vitorias', 'derrotas'] as const).map((k) => (
@@ -166,7 +175,7 @@ function Jogadores({ d, set }: { d: LigaData; set: (d: LigaData) => void }) {
 }
 
 /* ---------- torneios ---------- */
-function TorneioEditor({ t, d, set }: { t: Torneio; d: LigaData; set: (d: LigaData) => void }) {
+function TorneioEditor({ t, d, set, verificados }: { t: Torneio; d: LigaData; set: (d: LigaData) => void; verificados: PublicProfile[] | null }) {
   const upd = (patch: Partial<Torneio>) => set({ ...d, torneios: d.torneios.map((x) => (x.id === t.id ? { ...x, ...patch } : x)) });
   const updP = (i: number, patch: Partial<Partida>) => upd({ chave: t.chave.map((p, k) => (k === i ? { ...p, ...patch } : p)) });
   const nicks = d.jogadores.map((j) => j.nick);
@@ -251,12 +260,26 @@ function TorneioEditor({ t, d, set }: { t: Torneio; d: LigaData; set: (d: LigaDa
             ))}
           </select>
         </label>
+        <label className="field">
+          <span>Grupos: melhor de</span>
+          <select className="input" value={t.mdGrupos ?? 1} onChange={(e) => upd({ mdGrupos: Number(e.target.value) })}>
+            <option value={1}>1 batalha (MD1)</option>
+            <option value={3}>3 batalhas (MD3)</option>
+          </select>
+        </label>
+        <label className="field">
+          <span>Mata-mata: melhor de</span>
+          <select className="input" value={t.mdMata ?? 3} onChange={(e) => upd({ mdMata: Number(e.target.value) })}>
+            <option value={1}>1 batalha (MD1)</option>
+            <option value={3}>3 batalhas (MD3)</option>
+          </select>
+        </label>
         <label className="field wide">
           <span>Formato</span>
           <input className="input" value={t.formato} onChange={(e) => upd({ formato: e.target.value })} />
         </label>
       </div>
-      <Inscricoes t={t} d={d} upd={upd} />
+      <Inscricoes t={t} d={d} upd={upd} set={set} verificados={verificados} />
       <div className="admin-matches">
         <div className="admin-sub-head">
           <span className="label">Partidas e chaveamento</span>
@@ -347,11 +370,35 @@ function PokemonPicker({ value, onChange, max, label }: { value: number[]; onCha
   );
 }
 
-function Inscricoes({ t, d, upd }: { t: Torneio; d: LigaData; upd: (p: Partial<Torneio>) => void }) {
+interface Opcao {
+  nick: string;
+  trainer_id: string | null;
+  uuid: string | null;
+  noRanking: boolean;
+}
+function Inscricoes({ t, d, upd, set, verificados }: { t: Torneio; d: LigaData; upd: (p: Partial<Torneio>) => void; set: (d: LigaData) => void; verificados: PublicProfile[] | null }) {
   const inscritos = t.inscritos ?? [];
   const grupos = t.grupos ?? [];
   const [novo, setNovo] = useState('');
-  const livres = d.jogadores.map((j) => j.nick).filter((n) => !inscritos.some((i) => i.nick === n));
+  const opcoes: Opcao[] = [
+    ...d.jogadores.map((j) => ({ nick: j.nick, trainer_id: j.trainer_id ?? null, uuid: j.uuid ?? null, noRanking: true })),
+    ...(verificados ?? [])
+      .filter((v) => !d.jogadores.some((j) => j.nick.toLowerCase() === v.nick.toLowerCase()))
+      .map((v) => ({ nick: v.nick, trainer_id: v.trainer_id ?? null, uuid: v.minecraft_uuid ?? null, noRanking: false })),
+  ].filter((o) => !inscritos.some((i) => i.nick.toLowerCase() === o.nick.toLowerCase()));
+  const livres = opcoes.map((o) => o.nick);
+  /** Inscreve; quem não estava no ranking entra nele também (com o vínculo). */
+  const inscrever = (lista: Opcao[]) => {
+    const grupo = grupos.length > 1 ? null : grupos[0] ?? null;
+    const novos = lista.map((o) => ({ nick: o.nick, trainer_id: o.trainer_id, uuid: o.uuid, grupo, pokemon: [] as number[] }));
+    const faltam = lista.filter((o) => !o.noRanking);
+    const torneios = d.torneios.map((x) => (x.id === t.id ? { ...x, inscritos: [...inscritos, ...novos] } : x));
+    set({
+      ...d,
+      torneios,
+      jogadores: [...d.jogadores, ...faltam.map((o) => ({ nick: o.nick, pontos: 0, vitorias: 0, derrotas: 0, titulos: [], trainer_id: o.trainer_id, uuid: o.uuid }))],
+    });
+  };
   const updI = (k: number, patch: Partial<NonNullable<Torneio['inscritos']>[number]>) =>
     upd({ inscritos: inscritos.map((x, i) => (i === k ? { ...x, ...patch } : x)) });
   const [aberto, setAberto] = useState(inscritos.length > 0);
@@ -402,7 +449,10 @@ function Inscricoes({ t, d, upd }: { t: Torneio; d: LigaData; upd: (p: Partial<T
           <div key={i.nick} className="admin-insc-row">
             <span className="admin-player">
               <SkinHead nick={d.jogadores.find((j) => j.nick === i.nick)?.skin || i.nick} size={28} />
-              {i.nick}
+              <span className="admin-player-nome">
+                {i.nick}
+                <small className={i.trainer_id ? 'tid ok' : 'tid'}>{i.trainer_id ? `${i.trainer_id} ✓` : 'sem vínculo'}</small>
+              </span>
             </span>
             {grupos.length > 1 && (
               <select className="input" aria-label={`Grupo de ${i.nick}`} value={i.grupo ?? ''} onChange={(e) => updI(k, { grupo: e.target.value || null })}>
@@ -428,8 +478,10 @@ function Inscricoes({ t, d, upd }: { t: Torneio; d: LigaData; upd: (p: Partial<T
         <div className="row-gap tight">
           <select className="input" aria-label="Jogador para inscrever" value={novo} onChange={(e) => setNovo(e.target.value)}>
             <option value="">{livres.length ? 'Escolha um jogador do ranking' : 'Todos do ranking já estão inscritos'}</option>
-            {livres.map((n) => (
-              <option key={n}>{n}</option>
+            {opcoes.map((o) => (
+              <option key={o.nick} value={o.nick}>
+                {o.trainer_id ? rotuloVerificado(o) : `${o.nick} (sem vínculo)`}
+              </option>
             ))}
           </select>
           <button
@@ -437,7 +489,8 @@ function Inscricoes({ t, d, upd }: { t: Torneio; d: LigaData; upd: (p: Partial<T
             className="btn btn-sm"
             disabled={!novo}
             onClick={() => {
-              upd({ inscritos: [...inscritos, { nick: novo, grupo: grupos.length > 1 ? null : grupos[0] ?? null, pokemon: [] }] });
+              const o = opcoes.find((x) => x.nick === novo);
+              if (o) inscrever([o]);
               setNovo('');
             }}
           >
@@ -447,13 +500,13 @@ function Inscricoes({ t, d, upd }: { t: Torneio; d: LigaData; upd: (p: Partial<T
             <button
               type="button"
               className="btn btn-sm btn-ghost"
-              onClick={() => upd({ inscritos: [...inscritos, ...livres.map((nick) => ({ nick, grupo: grupos.length > 1 ? null : grupos[0] ?? null, pokemon: [] }))] })}
+              onClick={() => inscrever(opcoes.filter((o) => o.noRanking))}
             >
               Inscrever todos do ranking
             </button>
           )}
         </div>
-        {!d.jogadores.length && <p className="muted small">Adicione os jogadores na aba Jogadores primeiro.</p>}
+        {!opcoes.length && !inscritos.length && <p className="muted small">Nenhum jogador disponível. Adicione na aba Jogadores ou peça para vincularem a conta.</p>}
       </div>
     </details>
   );
@@ -519,6 +572,13 @@ function PartidaEditor({
           ))}
         </select>
       </div>
+      {!!p.jogos?.length && (
+        <p className="am-auto small">
+          <span className="live-dot" aria-hidden="true" /> Servidor: {p.jogos.length} {p.jogos.length === 1 ? 'batalha registrada' : 'batalhas registradas'} (
+          {p.jogos.filter((j) => j.vencedor === 'a').length}–{p.jogos.filter((j) => j.vencedor === 'b').length})
+          {!p.placar && ' · em andamento'}
+        </p>
+      )}
       <div className="am-ko">
         <input className="input tabular am-num" type="number" min={0} max={99} aria-label={`Pokémon derrotados por ${p.a ?? 'A'}`} placeholder="–" value={p.koA ?? ''} onChange={(e) => onChange({ koA: num(e.target.value) })} />
         <span className="small muted">Pokémon derrotados</span>
@@ -590,6 +650,14 @@ export default function Admin() {
   const file = useRef<HTMLInputElement>(null);
   const nav = useNavigate();
   const [salvando, setSalvando] = useState(false);
+  const [conflito, setConflito] = useState(false);
+  const [verificados, setVerificados] = useState<PublicProfile[] | null>(null);
+  useEffect(() => {
+    if (!admin) return;
+    listarVerificados()
+      .then(setVerificados)
+      .catch(() => setVerificados([]));
+  }, [admin]);
 
   // Avisa antes de fechar a aba com alterações não salvas.
   useEffect(() => {
@@ -660,8 +728,14 @@ export default function Admin() {
         return;
       }
       setMsg({ nivel: 'info', t: o === 'nuvem' ? 'Salvo: a Home, a Liga e os perfis já mostram os novos dados.' : 'Salvo neste navegador. Exporte o JSON para publicar no site.' });
-    } catch {
-      setMsg({ nivel: 'erro', t: 'Não consegui salvar. Verifique se sua conta é admin e tente de novo.' });
+    } catch (e) {
+      if (e instanceof ConflitoLiga) {
+        setConflito(true);
+        setMsg({
+          nivel: 'erro',
+          t: 'Enquanto você editava, a Liga recebeu uma atualização (provavelmente um resultado automático do servidor). Para não apagar esse resultado, nada foi salvo. Carregue a versão nova e refaça a alteração.',
+        });
+      } else setMsg({ nivel: 'erro', t: 'Não consegui salvar. Verifique se sua conta é admin e tente de novo.' });
     } finally {
       setSalvando(false);
     }
@@ -708,6 +782,20 @@ export default function Admin() {
           </Note>
         )}
         {msg && <Note nivel={msg.nivel}>{msg.t}</Note>}
+        {conflito && (
+          <button
+            type="button"
+            className="btn btn-sm"
+            onClick={() => {
+              setDraft(data);
+              setSujo(false);
+              setConflito(false);
+              setMsg(null);
+            }}
+          >
+            <RotateCcw size={15} aria-hidden /> Carregar a versão nova
+          </button>
+        )}
 
         <section className="admin-monitor" aria-label="Monitor">
           <div>
@@ -748,14 +836,14 @@ export default function Admin() {
             {[...draft.torneios]
               .sort((a, b) => (a.status === 'em-andamento' ? -1 : b.status === 'em-andamento' ? 1 : 0))
               .map((t) => (
-                <TorneioEditor key={t.id} t={t} d={draft} set={set} />
+                <TorneioEditor key={t.id} t={t} d={draft} set={set} verificados={verificados} />
               ))}
             <button type="button" className="btn btn-ghost admin-new" onClick={novoTorneio}>
               <Plus size={16} aria-hidden /> Novo torneio
             </button>
           </div>
         )}
-        {tab === 'jogadores' && <Jogadores d={draft} set={set} />}
+        {tab === 'jogadores' && <Jogadores d={draft} set={set} verificados={verificados} />}
         {tab === 'publicar' && (
           <section className="dex-panel admin-pub">
             <label className="check">

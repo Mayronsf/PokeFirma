@@ -53,15 +53,21 @@ export function PartidaCard({ p }: { p: Partida }) {
   const w = vencedor(p);
   const temKO = typeof p.koA === 'number' || typeof p.koB === 'number';
   const temTimes = !!(p.timeA?.length || p.timeB?.length);
+  // MD3 em andamento: batalhas já registradas pelo servidor, confronto ainda aberto
+  const parcial = !s && p.jogos?.length ? [p.jogos.filter((j) => j.vencedor === 'a').length, p.jogos.filter((j) => j.vencedor === 'b').length] : null;
   return (
     <div className={`tmatch${s ? ' feita' : ''}`}>
       <div className="tmatch-row">
         <Jogador nick={p.a} vence={w === 'a'} />
-        <b className="tmatch-score pixel tabular" aria-label={s ? `placar ${s[0]} a ${s[1]}` : 'ainda não jogada'}>
-          {s ? `${s[0]}–${s[1]}` : 'vs'}
+        <b
+          className={`tmatch-score pixel tabular${parcial ? ' parcial' : ''}`}
+          aria-label={s ? `placar ${s[0]} a ${s[1]}` : parcial ? `em andamento, ${parcial[0]} a ${parcial[1]}` : 'ainda não jogada'}
+        >
+          {s ? `${s[0]}–${s[1]}` : parcial ? `${parcial[0]}–${parcial[1]}` : 'vs'}
         </b>
         <Jogador nick={p.b} vence={w === 'b'} />
       </div>
+      {parcial && <p className="tmatch-andamento">Em andamento</p>}
       {temKO && (
         <p className="tmatch-ko">
           <span className="tabular">{p.koA ?? 0}</span>

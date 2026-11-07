@@ -1,0 +1,77 @@
+/* ============ diálogo de boas-vindas (vincular conta / nick) — carregado junto do componente ============ */
+.onboard {
+  border: 0;
+  padding: 0;
+  border-radius: var(--r-xl);
+  background: #fffdf7;
+  color: var(--ink);
+  box-shadow: var(--shadow-dark);
+  width: 100%;
+  max-width: min(640px, calc(100vw - 24px));
+  overflow: hidden;
+}
+.onboard::backdrop {
+  background: rgb(10 12 9 / 0.7);
+}
+.onboard-inner {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+}
+.onboard-skin {
+  display: grid;
+  place-items: end center;
+  background: var(--grass-700);
+  padding-top: 16px;
+}
+.onboard-skin img {
+  height: 230px;
+  width: auto;
+}
+.onboard-body,
+.onboard-body form {
+  display: grid;
+  gap: 12px;
+}
+.onboard-body {
+  padding: 24px;
+  --surface: #fffdf7;
+  --surface-2: var(--cream-100);
+  --line: var(--cream-300);
+  --text: var(--ink);
+  --text-2: var(--ink-2);
+  --text-3: var(--ink-3);
+  --focus: #2c6416;
+  color: var(--ink);
+}
+.onboard-body p {
+  margin: 0;
+}
+.onboard-alt {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--grass-700);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.onboard-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.onboard .btn-ghost {
+  --b-fg: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--cream-300);
+}
+@media (max-width: 560px) {
+  .onboard-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .onboard-skin {
+    display: none;
+  }
+}

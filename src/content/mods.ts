@@ -1,4 +1,4 @@
-/** Lista de mods — fonte: MODLIST_E_INSTALACAO.md (v2.7.0, NeoForge 1.21.1). */
+/** Lista de mods (curada) — fonte: MODLIST_E_INSTALACAO.md e MODLIST.md do modpack (v2.8.0, NeoForge 1.21.1). */
 
 export interface Mod {
   nome: string;
@@ -22,8 +22,6 @@ export const categorias: Categoria[] = [
       { nome: 'Z-A Mega', arquivos: ['zamega-neoforge-1.8.2+1.8.2.jar'], funcao: 'Novas Mega Evoluções inspiradas em Legends Z-A (83 Mega Stones no sorteio).' },
       { nome: 'Cobblemon Raid Dens', arquivos: ['cobblemonraiddens-neoforge-0.13.5+1.21.1.jar'], funcao: 'Raids cooperativas (Tiers 1 a 7) inspiradas em Sword/Shield e Scarlet/Violet.' },
       { nome: 'MissingMons', arquivos: ['missingmons-cobblemon-3.6.1.jar'], funcao: 'Mais de uma centena de espécies adicionais.' },
-      { nome: 'Cobblemon Simple Center', arquivos: ['cobblemon_simple_center-neoforge-1.2.1.jar'], funcao: 'Centros Pokémon e Poké Marts nas vilas.' },
-      { nome: 'CobbleStructures & Cobblemore Lib', arquivos: ['cobblestructures-1.1.0.jar', 'cobblemore_lib-neoforge-1.2.10.jar'], funcao: 'Geração de estruturas e vilas temáticas.' },
       { nome: 'Pasture Loot & Safe Pastures', arquivos: ['PastureLoot-neoforge-2.0.0+1.21.1.jar', 'SafePastures(Neoforge)-1.1.2+1.21.1.jar'], funcao: 'Pokémon no pasto soltam drops e ficam protegidos contra dano.' },
       { nome: 'Cobbreeding', arquivos: ['Cobbreeding-neoforge-2.4.1.jar'], funcao: 'Cruzamento e ovos no Pasture Block (IVs, Natures e Egg Moves).' },
       { nome: 'Cobblemon Utility+', arquivos: ['Cobblemon-Utility+-neoforge-1.8.0.jar'], funcao: 'Silver e Golden Bottle Caps e penas de ajuste de EVs.' },
@@ -54,7 +52,6 @@ export const categorias: Categoria[] = [
       { nome: 'Explorer’s & Nature’s Compass', arquivos: ['ExplorersCompass-1.21.1-3.4.0-neoforge.jar', 'NaturesCompass-1.21.1-3.4.0-neoforge.jar'], funcao: 'Bússolas para estruturas e biomas.' },
       { nome: 'Waystones', arquivos: ['waystones-neoforge-1.21.1-21.1.46.jar'], funcao: 'Teleporte entre bases, vilas, ginásios e arenas.' },
       { nome: 'Lootr', arquivos: ['lootr-neoforge-1.21.1-1.11.38.127.jar'], funcao: 'Loot individual por jogador em baús de estruturas.' },
-      { nome: 'Terralith', arquivos: ['Terralith_1.21.1_v2.6.2_Neoforge.jar'], funcao: 'Terreno rico, compatível com os spawns de Pokémon.' },
     ],
   },
   {
@@ -132,7 +129,7 @@ export const faq = [
   },
   {
     p: 'Os mods do CurseForge baixam sozinhos?',
-    r: 'Sim, no pacote .zip da v2.7.0 eles já vêm dentro: importe o arquivo no CurseForge App ou no Prism Launcher e está pronto. Só na montagem manual antiga (perfil vazio no Modrinth App) era preciso baixar FTB Quests, FTB Teams e FTB Library à parte e colocar os .jar na pasta mods/.',
+    r: 'Sim, no pacote .zip da v2.8.0 eles já vêm dentro: importe o arquivo no CurseForge App ou no Prism Launcher e está pronto. Só na montagem manual antiga (perfil vazio no Modrinth App) era preciso baixar FTB Quests, FTB Teams e FTB Library à parte e colocar os .jar na pasta mods/.',
   },
   { p: 'Como entro no Discord?', r: 'Pelo botão “Comunidade — entre no Discord” no rodapé.' },
   {
