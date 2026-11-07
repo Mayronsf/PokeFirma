@@ -25,6 +25,10 @@ const OPCOES = [
       </>,
       <>Configure {m.ramCliente} de RAM nas configurações da instância (<code>-Xmx6G</code>).</>,
       <>Clique em Play, entre em Multiplayer e cole o IP do servidor.</>,
+      <>
+        No servidor, digite <code>/vincular</code> no chat e cole o código em <Link to="/perfil">Perfil</Link>: seu nick, insígnias, time e PC
+        passam a aparecer aqui no site.
+      </>,
     ],
   },
   {
@@ -32,7 +36,7 @@ const OPCOES = [
     nome: 'Atualização rápida',
     sub: 'Quem já tem a instância',
     passos: [
-      <>Baixe <code>Firma-League-NeoForge-Atualizacao.zip</code> (98.6 MB) {config.modpack.downloads.atualizacao ? <a href={config.modpack.downloads.atualizacao}>(baixar)</a> : <Tbd />}.</>,
+      <>Baixe <code>Firma-League-NeoForge-Atualizacao.zip</code> {config.modpack.downloads.atualizacao ? <a href={config.modpack.downloads.atualizacao}>(baixar)</a> : <Tbd />}.</>,
       <>Abra a pasta da instância no CurseForge ou no Prism (botão direito → <i>Open Folder</i>).</>,
       <>Extraia o conteúdo do zip dentro da pasta e aceite substituir todos os arquivos.</>,
       <>Abra o jogo normalmente: mundos, waypoints e binds são preservados.</>,
@@ -43,7 +47,7 @@ const OPCOES = [
     nome: 'Servidor dedicado',
     sub: 'Hosts pagas',
     passos: [
-      <>Baixe <code>Firma-League-Server-NeoForge-{m.versao}.zip</code> (301.4 MB) {config.modpack.downloads.servidor ? <a href={config.modpack.downloads.servidor}>(baixar)</a> : <Tbd />}.</>,
+      <>Baixe <code>Firma-League-Server-NeoForge-{m.versao}.zip</code> {config.modpack.downloads.servidor ? <a href={config.modpack.downloads.servidor}>(baixar)</a> : <Tbd />}.</>,
       <>Na sua host (PebbleHost, Shockbyte, Bisect, Apex…), escolha <b>NeoForge 1.21.1</b> (versão {m.loaderVersao} ou mais recente).</>,
       <>Envie o .zip para a raiz por FTP ou pelo painel e extraia. Ele já traz os {m.modsServidor} mods de servidor, <code>config/</code>, <code>kubejs/</code>, <code>server.properties</code> com <code>allow-flight=true</code> e <code>eula=true</code>.</>,
       <>Inicie o servidor e mande o IP para a Firma.</>,
