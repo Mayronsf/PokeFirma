@@ -3,7 +3,9 @@
  * Função pura (sem Firebase): usada pela rota /api/minecraft/tournament/match-result e testável à parte.
  *
  * Regras:
- * - Acha o torneio pelo id e os dois jogadores pelo UUID (inscritos → ranking).
+ * - Acha o torneio pelo id e os dois jogadores pelo UUID (inscritos → ranking). Sem torneio_id (o
+ *   web_sync_bridge.js do servidor não sabe de qual torneio é a batalha), procura a partida aberta entre
+ *   os dois só nos torneios com status "em-andamento": batalha amistosa fora de torneio não conta.
  * - Usa a primeira partida AINDA ABERTA (sem placar) entre os dois, na ordem das fases.
  * - Cada chamada é uma batalha. O confronto fecha quando alguém vence a maioria (MD1 = 1, MD3 = 2).
  *   MD padrão: fase de grupos = torneio.mdGrupos (1), mata-mata = torneio.mdMata (3).
@@ -14,7 +16,8 @@
 import type { JogoPartida, LigaData, Partida, Torneio } from './ligaTipos';
 
 export interface ResultadoBatalha {
-  torneio_id: string;
+  /** Opcional: sem ele, procura a partida aberta entre os dois nos torneios "Em andamento". */
+  torneio_id?: string | null;
   winner_uuid: string;
   loser_uuid: string;
   ko_winner: number;
@@ -59,24 +62,58 @@ export function mdDa(t: Torneio, p: Partida): number {
   return md === 3 ? 3 : md === 5 ? 5 : 1;
 }
 
-export function aplicarResultado(base: LigaData, r: ResultadoBatalha, agora = Date.now()): Aplicado {
-  const liga: LigaData = structuredClone(base);
-  const t = liga.torneios.find((x) => x.id === r.torneio_id);
-  if (!t) throw new ErroResultado(404, `Torneio "${r.torneio_id}" não encontrado.`);
-  if (mesmo(r.winner_uuid, r.loser_uuid)) throw new ErroResultado(400, 'Vencedor e perdedor são o mesmo jogador.');
-  const W = nickDoUuid(liga, t, r.winner_uuid);
-  const L = nickDoUuid(liga, t, r.loser_uuid);
+interface Achado {
+  t: Torneio;
+  W: { nick: string; trainer_id: string | null };
+  L: { nick: string; trainer_id: string | null };
+  candidatas: { p: Partida; i: number }[];
+}
 
-  const candidatas = t.chave
+/** Partidas ainda abertas entre os dois, na ordem das fases. */
+function abertas(t: Torneio, a: string, b: string) {
+  return t.chave
     .map((p, i) => ({ p, i }))
-    .filter(({ p }) => !p.placar && ((mesmo(p.a, W.nick) && mesmo(p.b, L.nick)) || (mesmo(p.a, L.nick) && mesmo(p.b, W.nick))))
+    .filter(({ p }) => !p.placar && ((mesmo(p.a, a) && mesmo(p.b, b)) || (mesmo(p.a, b) && mesmo(p.b, a))))
     .sort((x, y) => {
       const fx = ORDEM_FASES.indexOf(x.p.fase);
       const fy = ORDEM_FASES.indexOf(y.p.fase);
       return (fx < 0 ? 99 : fx) - (fy < 0 ? 99 : fy) || x.i - y.i;
     });
+}
+
+function noTorneio(liga: LigaData, id: string, r: ResultadoBatalha): Achado {
+  const t = liga.torneios.find((x) => x.id === id);
+  if (!t) throw new ErroResultado(404, `Torneio "${id}" não encontrado.`);
+  const W = nickDoUuid(liga, t, r.winner_uuid);
+  const L = nickDoUuid(liga, t, r.loser_uuid);
+  const candidatas = abertas(t, W.nick, L.nick);
   if (!candidatas.length) throw new ErroResultado(409, `Nenhuma partida aberta entre ${W.nick} e ${L.nick} em "${t.nome}".`);
-  const { p, i } = candidatas[0];
+  return { t, W, L, candidatas };
+}
+
+function emAndamento(liga: LigaData, r: ResultadoBatalha): Achado {
+  const ativos = liga.torneios.filter((t) => t.status === 'em-andamento');
+  if (!ativos.length) throw new ErroResultado(409, 'Nenhum torneio em andamento: batalha tratada como amistosa.');
+  for (const t of ativos) {
+    let W, L;
+    try {
+      W = nickDoUuid(liga, t, r.winner_uuid);
+      L = nickDoUuid(liga, t, r.loser_uuid);
+    } catch {
+      continue;
+    }
+    const candidatas = abertas(t, W.nick, L.nick);
+    if (candidatas.length) return { t, W, L, candidatas };
+  }
+  throw new ErroResultado(409, 'Nenhuma partida aberta entre esses jogadores nos torneios em andamento: batalha tratada como amistosa.');
+}
+
+export function aplicarResultado(base: LigaData, r: ResultadoBatalha, agora = Date.now()): Aplicado {
+  const liga: LigaData = structuredClone(base);
+  if (mesmo(r.winner_uuid, r.loser_uuid)) throw new ErroResultado(400, 'Vencedor e perdedor são o mesmo jogador.');
+  const achado = r.torneio_id ? noTorneio(liga, r.torneio_id, r) : emAndamento(liga, r);
+  const { t, W, L } = achado;
+  const { p, i } = achado.candidatas[0];
 
   const jogosAntes = p.jogos ?? [];
   if (r.battle_id && jogosAntes.some((j) => j.id === r.battle_id)) {

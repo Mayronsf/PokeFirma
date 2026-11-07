@@ -120,12 +120,12 @@ Rotas (todas `POST` com JSON; resposta `{ ok: true, ... }` ou `{ ok: false, erro
 |---|---|---|
 | `/api/minecraft/link/create` | servidor (`/vincular`) | `{ token, minecraft_uuid, minecraft_nick, expires_at }` (ms ou s; máx. 1 h) |
 | `/api/minecraft/sync/player` | servidor | `{ uuid, nick, capitulo, level_cap, insignias[], pokedex{vistos[],capturados[]}, party[], pc[] }`: campos ausentes ficam como estavam |
-| `/api/minecraft/tournament/match-result` | servidor (fim de cada batalha) | `{ torneio_id, winner_uuid, loser_uuid, ko_winner, ko_loser, team_winner_dex[], team_loser_dex[], battle_id? }` |
+| `/api/minecraft/tournament/match-result` | servidor (fim de cada batalha) | `{ torneio_id?, winner_uuid, loser_uuid, ko_winner, ko_loser, team_winner_dex[], team_loser_dex[], battle_id? }` |
 | `/api/link/redeem` | site (`Authorization: Bearer <ID token>`) | `{ token }`: gera o Trainer ID (`TR-001`…) e marca a conta como verificada |
 
 - **Pokémon** (party/pc): `dex, especie, forma, apelido, nivel, shiny, sexo ("M"/"F"), habilidade, natureza, item, golpes[], ivs{hp,atk,def,spa,spd,spe}, evs{…}, tera, bola, amizade`. No PC também `caixa` e `slot`. Nomes em inglês (`species`, `level`, `gender`, `moves`, `box`…) também são aceitos.
 - **Insígnias**: mesmos IDs do site (`kanto-1`…`kanto-8`, `kanto-elite`, `kanto-campeao`, idem johto/hoenn/sinnoh). IDs desconhecidos são ignorados.
-- **Torneios**: cada chamada é **uma batalha**. O confronto fecha quando alguém vence a maioria (MD1/MD3, configurável no painel por torneio). Ao fechar, a rota preenche placar, KOs e times e soma **+3 pts / +1 V** e **+1 D** no ranking. Na Final, define o campeão. Mande `battle_id` para que reenvios não contem duas vezes. Os jogadores precisam estar **inscritos ou no ranking com o vínculo** (UUID).
+- **Torneios**: cada chamada é **uma batalha**. O confronto fecha quando alguém vence a maioria (MD1/MD3, configurável no painel por torneio). Ao fechar, a rota preenche placar, KOs e times e soma **+3 pts / +1 V** e **+1 D** no ranking. Na Final, define o campeão. Mande `battle_id` para que reenvios não contem duas vezes. Sem `torneio_id` (o padrão do `web_sync_bridge.js`), a rota procura a partida aberta entre os dois jogadores só nos torneios com status **Em andamento**; batalhas fora disso são tratadas como amistosas e respondem 409. Os jogadores precisam estar **inscritos ou no ranking com o vínculo** (UUID).
 - Dados do jogo ficam em `treinadores/{uuid}` (o site lê ao vivo); `vinculos/{uuid}` liga o UUID à conta do site. As regras do Firestore impedem o navegador de gravar `verificado`, `trainer_id`, `minecraft_uuid` e, em conta verificada, nick e insígnias.
 
 Testar à mão (troque o segredo):

@@ -1,6 +1,6 @@
 /**
  * POST /api/minecraft/tournament/match-result   (servidor Minecraft → site; header X-Minecraft-Secret)
- * Body: { torneio_id, winner_uuid, loser_uuid, ko_winner, ko_loser, team_winner_dex[], team_loser_dex[], battle_id? }
+ * Body: { torneio_id?, winner_uuid, loser_uuid, ko_winner, ko_loser, team_winner_dex[], team_loser_dex[], battle_id? }
  *
  * Cada chamada = uma batalha. A lógica (achar a partida, MD1/MD3, ranking, campeão) está em
  * src/lib/torneioAuto.ts. Roda numa transação em liga/dados, então nunca apaga uma edição
@@ -14,7 +14,7 @@ export default rota(async (req) => {
   exigirSegredo(req);
   const b = corpo(req);
   const r = {
-    torneio_id: texto(b.torneio_id, 'torneio_id', 80),
+    torneio_id: textoOpc(b.torneio_id, 80),
     winner_uuid: uuidValido(b.winner_uuid, 'winner_uuid'),
     loser_uuid: uuidValido(b.loser_uuid, 'loser_uuid'),
     ko_winner: inteiro(b.ko_winner, 0, 6) ?? 0,
