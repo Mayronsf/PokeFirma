@@ -9,9 +9,9 @@
  * - marca uuid/trainer_id nas entradas do ranking e dos torneios que já tinham esse nick.
  * Campos verificados só podem ser escritos aqui (as regras do Firestore bloqueiam o navegador).
  */
-import { formatarTrainerId } from '../../src/lib/jogoTipos';
-import type { LigaData } from '../../src/lib/ligaTipos';
-import { ErroHttp, corpo, db, exigirUsuario, normalizarToken, rota } from '../_lib/firebase';
+import { formatarTrainerId } from '../../src/lib/jogoTipos.js';
+import type { LigaData } from '../../src/lib/ligaTipos.js';
+import { ErroHttp, corpo, db, exigirUsuario, normalizarToken, rota } from '../_lib/firebase.js';
 
 export default rota(async (req) => {
   const user = await exigirUsuario(req);

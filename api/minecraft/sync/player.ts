@@ -9,8 +9,8 @@
  * também atualiza insígnias e capítulo em users/{uid} e publicProfiles/{nick}.
  * Campos que não vierem no corpo ficam como estavam (dá para mandar só a party, por exemplo).
  */
-import { limparInsignias, limparMon, limparPokedex, type MonJogo } from '../../../src/lib/jogoTipos';
-import { corpo, db, exigirSegredo, inteiro, nickValido, rota, uuidValido } from '../../_lib/firebase';
+import { limparInsignias, limparMon, limparPokedex, type MonJogo } from '../../../src/lib/jogoTipos.js';
+import { corpo, db, exigirSegredo, inteiro, nickValido, rota, uuidValido } from '../../_lib/firebase.js';
 
 const MAX_PC = 1200;
 

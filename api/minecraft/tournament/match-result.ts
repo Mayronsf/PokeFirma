@@ -6,9 +6,9 @@
  * src/lib/torneioAuto.ts. Roda numa transação em liga/dados, então nunca apaga uma edição
  * do painel feita ao mesmo tempo. O site atualiza ao vivo (onSnapshot).
  */
-import { ErroResultado, aplicarResultado } from '../../../src/lib/torneioAuto';
-import type { LigaData } from '../../../src/lib/ligaTipos';
-import { ErroHttp, corpo, db, exigirSegredo, inteiro, listaDex, rota, texto, textoOpc, uuidValido } from '../../_lib/firebase';
+import { ErroResultado, aplicarResultado } from '../../../src/lib/torneioAuto.js';
+import type { LigaData } from '../../../src/lib/ligaTipos.js';
+import { ErroHttp, corpo, db, exigirSegredo, inteiro, listaDex, rota, texto, textoOpc, uuidValido } from '../../_lib/firebase.js';
 
 export default rota(async (req) => {
   exigirSegredo(req);

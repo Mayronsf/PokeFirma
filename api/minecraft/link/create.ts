@@ -4,7 +4,7 @@
  * Guarda o token do /vincular em link_tokens/{token}. Ele vale uma vez e até expires_at
  * (se não vier, 15 minutos).
  */
-import { ErroHttp, corpo, db, exigirSegredo, inteiro, nickValido, normalizarToken, rota, uuidValido } from '../../_lib/firebase';
+import { ErroHttp, corpo, db, exigirSegredo, inteiro, nickValido, normalizarToken, rota, uuidValido } from '../../_lib/firebase.js';
 
 const MAX_VALIDADE = 60 * 60 * 1000; // no máximo 1 hora
 
